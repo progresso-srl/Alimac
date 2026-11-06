@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 
+        Reference existing transport condition records with XML IDs
+        These records are created by l10n_it_delivery_note module
+        
+        This allows us to reference them in filters using xmlid instead of translatable names
+        
+        NOTE: If these records don't exist, they will be created.
+        Verify with the client that these are the correct transport conditions.
+    -->
+    
+    <!-- Porto Franco (Freight Prepaid) -->
+    <record id="transport_condition_porto_franco" model="stock.picking.transport.condition">
+        <field name="name">Porto franco</field>
+    </record>
+    
+    <!-- Porto Assegnato (Freight Collect) -->
+    <record id="transport_condition_porto_assegnato" model="stock.picking.transport.condition">
+        <field name="name">Porto assegnato</field>
+    </record>
+    
+    <!-- Con Addebito in Fattura (With Invoice Charge) -->
+    <record id="transport_condition_con_addebito" model="stock.picking.transport.condition">
+        <field name="name">Con addebito in fattura</field>
+    </record>
+
+</odoo>

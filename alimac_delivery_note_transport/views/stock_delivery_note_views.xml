@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Delivery Note Form View -->
+    <record id="stock_delivery_note_form_view_inherit_transport" model="ir.ui.view">
+        <field name="name">stock.delivery.note.form.inherit.transport</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Add transport cost and tonnage near transport data -->
+            <xpath expr="//field[@name='carrier_id']" position="after">
+                <field name="transport_cost" widget="monetary"/>
+                <field name="transport_tons" readonly="1"/>
+                <field name="currency_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Delivery Note Tree View -->
+    <record id="stock_delivery_note_tree_view_inherit_transport" model="ir.ui.view">
+        <field name="name">stock.delivery.note.tree.inherit.transport</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_tree_view"/>
+        <field name="arch" type="xml">
+            <!-- Add transport cost and tonnage columns -->
+            <xpath expr="//field[@name='carrier_id']" position="after">
+                <field name="transport_cost" sum="Total Transport Cost" widget="monetary" optional="show"/>
+                <field name="transport_tons" sum="Total Tonnage" optional="show"/>
+                <field name="destination_partner_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Delivery Note Search View -->
+    <record id="stock_delivery_note_search_view_inherit_transport" model="ir.ui.view">
+        <field name="name">stock.delivery.note.search.inherit.transport</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_search_view"/>
+        <field name="arch" type="xml">
+            <!-- Add filters -->
+            <xpath expr="//filter[@name='state_done']" position="after">
+                <separator/>
+                <filter name="porto_franco" 
+                        string="Porto Franco" 
+                        domain="[('transport_condition_id', '=', ref('alimac_delivery_note_transport.transport_condition_porto_franco'))]"
+                        help="Show only Porto Franco deliveries"/>
+                <filter name="active_ddt" 
+                        string="Active DDT" 
+                        domain="[('state', 'not in', ('draft', 'cancel'))]"
+                        help="Show confirmed, validated and invoiced DDT (exclude drafts and cancelled)"/>
+                <filter name="with_transport_cost" 
+                        string="With Transport Cost" 
+                        domain="[('transport_cost', '>', 0)]"
+                        help="Show only DDT with transport cost"/>
+            </xpath>
+            
+            <!-- Add group by options -->
+            <xpath expr="//filter[@name='group_by_partner_id']" position="after">
+                <separator/>
+                <filter name="group_by_carrier" 
+                        string="Carrier" 
+                        context="{'group_by': 'carrier_id'}"
+                        help="Group by carrier"/>
+                <filter name="group_by_destination" 
+                        string="Destination" 
+                        context="{'group_by': 'destination_partner_id'}"
+                        help="Group by destination partner"/>
+                <filter name="group_by_transport_condition" 
+                        string="Transport Condition" 
+                        context="{'group_by': 'transport_condition_id'}"
+                        help="Group by transport condition"/>
+                <filter name="group_by_month" 
+                        string="Month" 
+                        context="{'group_by': 'date:month'}"
+                        help="Group by month"/>
+            </xpath>
+            
+            <!-- Add search fields -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="carrier_id"/>
+                <field name="destination_partner_id"/>
+                <field name="transport_condition_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Pivot Action for Transport Analysis -->
+    <record id="action_delivery_note_transport_pivot" model="ir.actions.act_window">
+        <field name="name">Transport Analysis</field>
+        <field name="res_model">stock.delivery.note</field>
+        <field name="view_mode">pivot,graph,tree,form</field>
+        <field name="context">{
+            'search_default_porto_franco': 1,
+            'search_default_active_ddt': 1,
+            'pivot_measures': ['__count__', 'transport_tons', 'transport_cost'],
+            'pivot_row_groupby': ['carrier_id', 'destination_partner_id'],
+        }</field>
+        <field name="domain">[]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No delivery notes found
+            </p>
+            <p>
+                This view shows transport analysis by carrier and destination.
+                Default filters show Porto Franco and active DDT.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pivot View for Delivery Notes -->
+    <record id="stock_delivery_note_pivot_view_transport" model="ir.ui.view">
+        <field name="name">stock.delivery.note.pivot.transport</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="arch" type="xml">
+            <pivot string="Transport Analysis">
+                <field name="carrier_id" type="row"/>
+                <field name="destination_partner_id" type="row"/>
+                <field name="transport_cost" type="measure"/>
+                <field name="transport_tons" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View for Delivery Notes -->
+    <record id="stock_delivery_note_graph_view_transport" model="ir.ui.view">
+        <field name="name">stock.delivery.note.graph.transport</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="arch" type="xml">
+            <graph string="Transport Analysis" type="bar">
+                <field name="carrier_id"/>
+                <field name="transport_cost" type="measure"/>
+                <field name="transport_tons" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Menu Item for Transport Analysis -->
+    <menuitem id="menu_delivery_note_transport_analysis"
+              name="Transport Analysis"
+              parent="l10n_it_delivery_note.menu_stock_delivery_note"
+              action="action_delivery_note_transport_pivot"
+              sequence="50"/>
+
+</odoo>

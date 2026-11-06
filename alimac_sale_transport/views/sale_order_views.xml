@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sale Order Form View: Add buttons and transport incorporated indicator -->
+    <record id="sale_order_form_view_inherit_transport" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.transport</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Add buttons in header -->
+            <xpath expr="//button[@name='action_quotation_send']" position="after">
+                <button name="action_incorporate_transport" 
+                        string="Incorporate Transport" 
+                        type="object" 
+                        class="btn-primary"
+                        invisible="transport_incorporated or invoice_count > 0"
+                        help="Distribute transport costs proportionally across product lines"/>
+                <button name="action_uncorporate_transport" 
+                        string="Uncorporate Transport" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="not transport_incorporated or invoice_count > 0"
+                        help="Restore original prices and transport line"/>
+            </xpath>
+
+            <!-- Add transport incorporated field (readonly indicator) -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="transport_incorporated" invisible="1"/>
+            </xpath>
+
+            <!-- Add alert message when transport is incorporated -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info" role="alert" invisible="not transport_incorporated">
+                    <strong>Transport Incorporated:</strong> Order lines are locked. Use "Uncorporate Transport" to modify them.
+                </div>
+            </xpath>
+
+            <!-- Add material and transport columns to order lines -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="after">
+                <field name="material_price_unit" 
+                       string="Material Price" 
+                       optional="hide"
+                       readonly="1"/>
+                <field name="transport_price_unit" 
+                       string="Transport Quota" 
+                       optional="hide"
+                       readonly="1"/>
+                <field name="material_amount" 
+                       string="Material Amount" 
+                       optional="hide"
+                       readonly="1"
+                       widget="monetary"/>
+                <field name="transport_amount" 
+                       string="Transport Amount" 
+                       optional="hide"
+                       readonly="1"
+                       widget="monetary"/>
+            </xpath>
+
+            <!-- Show transport reference amount on transport lines -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="after">
+                <field name="transport_reference_amount" 
+                       string="Transport Ref." 
+                       optional="hide"
+                       readonly="1"
+                       invisible="not product_id or not product_id.is_transport"
+                       widget="monetary"/>
+            </xpath>
+
+            <!-- Style transport lines when incorporated (grayed out) -->
+            <xpath expr="//field[@name='order_line']/tree" position="attributes">
+                <attribute name="decoration-muted">product_id.is_transport and transport_reference_amount > 0 and price_unit == 0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Sale Order Tree View: Add transport incorporated indicator -->
+    <record id="sale_order_tree_view_inherit_transport" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherit.transport</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_total']" position="after">
+                <field name="transport_incorporated" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

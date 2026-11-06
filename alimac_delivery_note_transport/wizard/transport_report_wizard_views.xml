@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Transport Report Wizard Form -->
+    <record id="transport_report_wizard_form_view" model="ir.ui.view">
+        <field name="name">transport.report.wizard.form</field>
+        <field name="model">transport.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Monthly Transport Report">
+                <group>
+                    <group>
+                        <field name="month"/>
+                        <field name="year"/>
+                    </group>
+                    <group>
+                        <field name="carrier_id"/>
+                        <field name="transport_condition_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Print Report" 
+                            name="action_print_report" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_transport_report_wizard" model="ir.actions.act_window">
+        <field name="name">Monthly Transport Report</field>
+        <field name="res_model">transport.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="l10n_it_delivery_note.model_stock_delivery_note"/>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_transport_monthly_report"
+              name="Monthly Report"
+              parent="l10n_it_delivery_note.menu_stock_delivery_note"
+              action="action_transport_report_wizard"
+              sequence="60"/>
+
+</odoo>

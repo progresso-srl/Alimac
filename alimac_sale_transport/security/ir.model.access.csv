@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_product_user,product.product.user,base.model_product_product,sales_team.group_sale_salesman,1,1,1,0
+access_sale_order_user,sale.order.user,sale.model_sale_order,sales_team.group_sale_salesman,1,1,1,0
+access_sale_order_line_user,sale.order.line.user,sale.model_sale_order_line,sales_team.group_sale_salesman,1,1,1,0
+access_account_move_line_user,account.move.line.user,account.model_account_move_line,sales_team.group_sale_salesman,1,0,0,0

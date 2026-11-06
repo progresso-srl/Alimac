@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_delivery_note_user,stock.delivery.note.user,l10n_it_delivery_note.model_stock_delivery_note,stock.group_stock_user,1,1,1,0
+access_transport_report_wizard_user,transport.report.wizard.user,model_transport_report_wizard,stock.group_stock_user,1,1,1,1
+access_transport_report_wizard_manager,transport.report.wizard.manager,model_transport_report_wizard,stock.group_stock_manager,1,1,1,1

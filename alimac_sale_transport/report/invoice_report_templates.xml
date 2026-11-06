@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hide incorporated transport lines from invoice report -->
+    <template id="report_invoice_document_inherit_transport" inherit_id="account.report_invoice_document">
+        <!-- Note: Transport lines are already excluded from invoices by the _get_invoiceable_lines method,
+             so they won't appear in the invoice. This template is kept for consistency and future needs. -->
+    </template>
+
+</odoo>

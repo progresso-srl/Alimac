@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action -->
+    <record id="action_report_transport_monthly" model="ir.actions.report">
+        <field name="name">Monthly Transport Report</field>
+        <field name="model">transport.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">alimac_delivery_note_transport.report_transport_monthly_document</field>
+        <field name="report_file">alimac_delivery_note_transport.report_transport_monthly_document</field>
+        <field name="binding_model_id" ref="model_transport_report_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Report Template -->
+    <template id="report_transport_monthly_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Report Header -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-12 text-center">
+                                <h2>Monthly Transport Report</h2>
+                                <h4>
+                                    <t t-esc="data.get('month_name')"/>
+                                    <t t-esc="data.get('year')"/>
+                                </h4>
+                                <p>
+                                    Period: <t t-esc="data.get('date_from')"/> - <t t-esc="data.get('date_to')"/>
+                                </p>
+                                <t t-if="data.get('carrier_id')">
+                                    <p>Carrier: <strong><t t-esc="data.get('carrier_name')"/></strong></p>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Report Data -->
+                        <t t-set="report_data" t-value="data.get('report_data', [])"/>
+                        
+                        <t t-if="not report_data">
+                            <div class="alert alert-warning" role="alert">
+                                No transport data found for the selected period and criteria.
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <!-- Loop through carriers -->
+                            <t t-foreach="report_data" t-as="carrier">
+                                <div class="mb-5">
+                                    <!-- Carrier Header -->
+                                    <h3 class="mt-4 mb-3">
+                                        <strong><t t-esc="carrier.get('carrier_name')"/></strong>
+                                    </h3>
+
+                                    <!-- Destinations Table -->
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Destination</th>
+                                                <th>City</th>
+                                                <th class="text-end">Trips</th>
+                                                <th class="text-end">Tonnage</th>
+                                                <th class="text-end">Cost (€)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="carrier.get('destinations', [])" t-as="dest">
+                                                <tr>
+                                                    <td><t t-esc="dest.get('destination_name')"/></td>
+                                                    <td><t t-esc="dest.get('destination_city', '-')"/></td>
+                                                    <td class="text-end"><t t-esc="dest.get('trip_count')"/></td>
+                                                    <td class="text-end"><t t-esc="'%.3f' % dest.get('tonnage', 0)"/> t</td>
+                                                    <td class="text-end"><t t-esc="'%.2f' % dest.get('cost', 0)"/></td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                        <!-- Carrier Subtotal -->
+                                        <tfoot class="table-secondary">
+                                            <tr>
+                                                <th colspan="2"><strong>Subtotal <t t-esc="carrier.get('carrier_name')"/></strong></th>
+                                                <th class="text-end"><t t-esc="carrier.get('total_trips')"/></th>
+                                                <th class="text-end"><t t-esc="'%.3f' % carrier.get('total_tonnage', 0)"/> t</th>
+                                                <th class="text-end"><t t-esc="'%.2f' % carrier.get('total_cost', 0)"/></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </t>
+
+                            <!-- Grand Total -->
+                            <t t-set="grand_total_trips" t-value="sum(c.get('total_trips', 0) for c in report_data)"/>
+                            <t t-set="grand_total_tonnage" t-value="sum(c.get('total_tonnage', 0) for c in report_data)"/>
+                            <t t-set="grand_total_cost" t-value="sum(c.get('total_cost', 0) for c in report_data)"/>
+                            
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th colspan="2"><strong>GRAND TOTAL</strong></th>
+                                                <th class="text-end"><t t-esc="grand_total_trips"/></th>
+                                                <th class="text-end"><t t-esc="'%.3f' % grand_total_tonnage"/> t</th>
+                                                <th class="text-end"><t t-esc="'%.2f' % grand_total_cost"/></th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Report Footer -->
+                        <div class="row mt-5">
+                            <div class="col-12 text-muted small">
+                                <p>
+                                    Report generated on <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                                </p>
+                                <p>
+                                    This report shows transport costs paid to carriers for deliveries in "Porto Franco" condition.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
