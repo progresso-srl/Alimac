@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add is_transport field to product form view -->
+    <!-- Add is_transport to product.template form (field lives on template) -->
     <record id="product_template_form_view_inherit_transport" model="ir.ui.view">
         <field name="name">product.template.form.inherit.transport</field>
         <field name="model">product.template</field>
@@ -11,17 +11,4 @@
             </xpath>
         </field>
     </record>
-
-    <!-- Add is_transport field to product variant form view -->
-    <record id="product_variant_form_view_inherit_transport" model="ir.ui.view">
-        <field name="name">product.product.form.inherit.transport</field>
-        <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_normal_form_view"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='sale_ok']" position="after">
-                <field name="is_transport" string="Is Transport Product"/>
-            </xpath>
-        </field>
-    </record>
-
 </odoo>

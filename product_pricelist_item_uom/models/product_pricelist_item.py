@@ -23,26 +23,24 @@ class ProductPricelistItem(models.Model):
         readonly=False,
     )
 
-    def _is_applicable_for(self, product, qty_in_product_uom, target_uom=None):
+    def _is_applicable_for(self, product, qty_in_product_uom):
         """Override to check UoM compatibility.
-        
+
+        In Odoo 19, ``_is_applicable_for`` receives only ``(product, qty)``
+        without a UoM argument.  The target UoM is passed via context key
+        ``_pricelist_target_uom`` set by our ``ProductPricelist._compute_price_rule``
+        override.
+
         When a pricelist item has a specific UoM set, it should only apply
-        when the order line uses the same UoM (or compatible UoM).
-        
-        :param product: product record (product.product/product.template)
-        :param float qty_in_product_uom: quantity, expressed in product UoM
-        :param target_uom: UoM used in the order line (uom.uom record)
-        :returns: Whether rule is valid or not
-        :rtype: bool
+        when the order line uses the same UoM.
         """
         res = super()._is_applicable_for(product, qty_in_product_uom)
-        
-        if res and self.uom_id and target_uom:
-            # If this pricelist item has a specific UoM, check if it matches
-            # the target UoM from the order line
-            if self.uom_id != target_uom:
+
+        if res and self.uom_id:
+            target_uom = self.env.context.get('_pricelist_target_uom')
+            if target_uom and self.uom_id != target_uom:
                 res = False
-        
+
         return res
 
     @api.depends(

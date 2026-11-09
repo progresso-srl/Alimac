@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!--                    DELIVERY NOTE FORM                        -->
+    <!-- ============================================================ -->
+    <record id="stock_delivery_note_form_view" model="ir.ui.view">
+        <field name="name">stock.delivery.note.form</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="arch" type="xml">
+            <form string="Delivery Note">
+                <header>
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_validate"
+                            string="Validate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'confirm'"/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ('cancel', 'invoiced')"/>
+                    <button name="action_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'cancel'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirm,done,invoiced"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="partner_shipping_id"
+                                   domain="['|', ('id', '=', partner_id), ('parent_id', '=', partner_id)]"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="carrier_id"/>
+                            <field name="transport_condition_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pickings" name="pickings">
+                            <field name="picking_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="scheduled_date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!--                    DELIVERY NOTE LIST                        -->
+    <!-- ============================================================ -->
+    <record id="stock_delivery_note_tree_view" model="ir.ui.view">
+        <field name="name">stock.delivery.note.list</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="arch" type="xml">
+            <list string="Delivery Notes"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="partner_id"/>
+                <field name="partner_shipping_id" optional="show"/>
+                <field name="carrier_id" optional="show"/>
+                <field name="transport_condition_id" optional="show"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state in ('done', 'invoiced')"
+                       decoration-warning="state == 'confirm'"
+                       decoration-danger="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!--                    DELIVERY NOTE SEARCH                      -->
+    <!-- ============================================================ -->
+    <record id="stock_delivery_note_search_view" model="ir.ui.view">
+        <field name="name">stock.delivery.note.search</field>
+        <field name="model">stock.delivery.note</field>
+        <field name="arch" type="xml">
+            <search string="Delivery Notes">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="carrier_id"/>
+                <field name="transport_condition_id"/>
+                <separator/>
+                <filter name="draft"
+                        string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed"
+                        string="Confirmed"
+                        domain="[('state', '=', 'confirm')]"/>
+                <filter name="done"
+                        string="Validated"
+                        domain="[('state', '=', 'done')]"/>
+                <filter name="invoiced"
+                        string="Invoiced"
+                        domain="[('state', '=', 'invoiced')]"/>
+                <separator/>
+                <filter name="group_by_partner"
+                        string="Partner"
+                        context="{'group_by': 'partner_id'}"/>
+                <filter name="group_by_carrier"
+                        string="Carrier"
+                        context="{'group_by': 'carrier_id'}"/>
+                <filter name="group_by_date"
+                        string="Date"
+                        context="{'group_by': 'date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!--                     ACTION AND MENU                          -->
+    <!-- ============================================================ -->
+    <record id="stock_delivery_note_action" model="ir.actions.act_window">
+        <field name="name">Delivery Notes (DDT)</field>
+        <field name="res_model">stock.delivery.note</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Delivery Note (DDT)
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="stock_delivery_note_menu"
+              name="Delivery Notes (DDT)"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="stock_delivery_note_action"
+              sequence="40"/>
+
+</odoo>

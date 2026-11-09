@@ -7,7 +7,7 @@ from odoo.exceptions import UserError
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    # Fields specific to transport line
+    # --- Transport line field ---
     transport_reference_amount = fields.Monetary(
         string='Transport Reference Amount',
         currency_field='currency_id',
@@ -16,7 +16,7 @@ class SaleOrderLine(models.Model):
         copy=True,
     )
 
-    # Fields for all lines
+    # --- Fields for all lines ---
     material_price_unit = fields.Float(
         string='Material Price Unit',
         digits='Product Price',
@@ -33,7 +33,7 @@ class SaleOrderLine(models.Model):
         copy=True,
     )
 
-    # Computed amounts (stored for reporting)
+    # --- Computed amounts (stored for reporting) ---
     material_amount = fields.Monetary(
         string='Material Amount',
         compute='_compute_material_transport_amounts',
@@ -50,124 +50,95 @@ class SaleOrderLine(models.Model):
         help='Transport amount: price_subtotal - material_amount',
     )
 
-    @api.depends('product_uom_qty', 'discount', 'material_price_unit', 
+    @api.depends('product_uom_qty', 'discount', 'material_price_unit',
                  'transport_price_unit', 'price_subtotal')
     def _compute_material_transport_amounts(self):
-        """
-        Compute material and transport amounts
-        material_amount = material_price_unit × quantity × (1 - discount)
-        transport_amount = price_subtotal - material_amount
-        """
         for line in self:
             if line.material_price_unit:
-                # Calculate material amount with discount applied
                 discount_factor = 1 - (line.discount / 100.0)
-                line.material_amount = line.material_price_unit * line.product_uom_qty * discount_factor
-                
-                # Transport is the difference
+                line.material_amount = (
+                    line.material_price_unit * line.product_uom_qty * discount_factor
+                )
                 line.transport_amount = line.price_subtotal - line.material_amount
             else:
-                # If no material price is set, everything is material (not incorporated)
                 line.material_amount = line.price_subtotal
                 line.transport_amount = 0.0
 
+    # ------------------------------------------------------------------
+    # Write guard: prevent manual edits on incorporated order lines
+    # The context flag _transport_incorporating bypasses the guard
+    # so that incorporate/uncorporate buttons AND Odoo internals work.
+    # ------------------------------------------------------------------
+
     def write(self, vals):
-        """
-        Prevent modification of incorporated order lines
-        Allow modification only if transport is not incorporated or if we're in incorporation process
-        """
-        # Check if we're trying to modify protected fields
+        if self.env.context.get('_transport_incorporating'):
+            return super().write(vals)
+
         protected_fields = {
-            'product_id', 'product_uom_qty', 'product_uom', 
-            'price_unit', 'discount', 'tax_id'
+            'product_id', 'product_uom_qty', 'product_uom_id',
+            'price_unit', 'discount', 'tax_ids',
         }
-        
-        modifying_protected = bool(protected_fields & set(vals.keys()))
-        
-        # Allow internal modifications (from incorporation/uncorporation)
-        internal_fields = {
-            'material_price_unit', 'transport_price_unit', 
-            'transport_reference_amount', 'price_unit'
-        }
-        is_internal_modification = set(vals.keys()).issubset(internal_fields)
-        
-        for line in self:
-            # Check if order is incorporated and we're modifying protected fields
-            if (line.order_id.transport_incorporated and 
-                modifying_protected and 
-                not is_internal_modification and
-                not line.product_id.is_transport):
-                
-                raise UserError(_(
-                    'Cannot modify order lines when transport is incorporated. '
-                    'Please use "Uncorporate Transport" button first.'
-                ))
-        
+        if protected_fields & set(vals.keys()):
+            for line in self:
+                if (line.order_id.transport_incorporated
+                        and not line.product_id.is_transport):
+                    raise UserError(_(
+                        'Cannot modify order lines when transport is incorporated. '
+                        'Please use "Uncorporate Transport" button first.'
+                    ))
         return super().write(vals)
+
+    # ------------------------------------------------------------------
+    # Create guard: prevent adding lines to incorporated orders.
+    # System-generated lines (acconti, delivery) pass via context flag.
+    # ------------------------------------------------------------------
 
     @api.model_create_multi
     def create(self, vals_list):
-        """
-        Prevent adding new lines to incorporated orders
-        """
-        # Check if any of the new lines are being added to incorporated orders
+        if self.env.context.get('_transport_incorporating'):
+            return super().create(vals_list)
         for vals in vals_list:
-            if 'order_id' in vals:
-                order = self.env['sale.order'].browse(vals['order_id'])
-                if order.transport_incorporated:
-                    raise UserError(_(
-                        'Cannot add new lines when transport is incorporated. '
-                        'Please use "Uncorporate Transport" button first.'
-                    ))
-        
+            order_id = vals.get('order_id')
+            if order_id:
+                order = self.env['sale.order'].browse(order_id)
+                if order.transport_incorporated and not vals.get('display_type'):
+                    # Allow section/note lines, and system lines (no product
+                    # flagged is_transport can be added, but deposit lines etc.
+                    # should go through). We block only if the user is explicitly
+                    # adding a product line from the UI.
+                    product_id = vals.get('product_id')
+                    if product_id:
+                        product = self.env['product.product'].browse(product_id)
+                        if not product.is_transport:
+                            raise UserError(_(
+                                'Cannot add new product lines when transport is incorporated. '
+                                'Please use "Uncorporate Transport" button first.'
+                            ))
         return super().create(vals_list)
 
+    # ------------------------------------------------------------------
+    # Invoice line preparation
+    # ------------------------------------------------------------------
+
     def _prepare_invoice_line(self, **optional_values):
-        """
-        Copy material and transport prices to invoice line
-        Exclude transport lines that are incorporated (price_unit = 0 and transport_reference_amount > 0)
-        """
         res = super()._prepare_invoice_line(**optional_values)
-        
-        # Copy material and transport prices
         res.update({
             'material_price_unit': self.material_price_unit,
             'transport_price_unit': self.transport_price_unit,
         })
-        
         return res
 
-    @api.depends('product_id', 'order_id.transport_incorporated', 
+    # ------------------------------------------------------------------
+    # qty_to_invoice: zero for incorporated transport lines
+    # ------------------------------------------------------------------
+
+    @api.depends('product_id', 'order_id.transport_incorporated',
                  'transport_reference_amount', 'price_unit')
     def _compute_qty_to_invoice(self):
-        """
-        Override to set qty_to_invoice to 0 for incorporated transport lines
-        This prevents them from appearing in invoices
-        """
-        res = super()._compute_qty_to_invoice()
-        
+        super()._compute_qty_to_invoice()
         for line in self:
-            # If this is an incorporated transport line (price_unit = 0 and has reference amount)
-            if (line.product_id.is_transport and 
-                line.order_id.transport_incorporated and
-                line.transport_reference_amount > 0 and
-                line.price_unit == 0):
+            if (line.product_id.is_transport
+                    and line.order_id.transport_incorporated
+                    and line.transport_reference_amount > 0
+                    and line.price_unit == 0):
                 line.qty_to_invoice = 0.0
-        
-        return res
-
-    def _get_invoiceable_lines(self):
-        """
-        Exclude incorporated transport lines from invoicing
-        """
-        lines = super()._get_invoiceable_lines()
-        
-        # Filter out incorporated transport lines
-        return lines.filtered(
-            lambda l: not (
-                l.product_id.is_transport and 
-                l.order_id.transport_incorporated and
-                l.transport_reference_amount > 0 and
-                l.price_unit == 0
-            )
-        )

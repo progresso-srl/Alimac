@@ -19,7 +19,7 @@ Key Features:
 * Mark products as transport
 * Incorporate/uncorporate transport costs with buttons
 * Automatic proportional distribution by tonnage
-* Hide transport lines from customer-facing documents
+* Hide transport lines from customer-facing documents (PDF, portal, email)
 * Track material_price_unit and transport_price_unit on order and invoice lines
 * Support for partial deliveries with proportional transport adjustment
     """,
@@ -33,12 +33,9 @@ Key Features:
         'uom',
     ],
     'data': [
-        'security/ir.model.access.csv',
         'views/product_product_views.xml',
         'views/sale_order_views.xml',
         'views/account_move_views.xml',
-        'report/sale_report_templates.xml',
-        'report/invoice_report_templates.xml',
     ],
     'installable': True,
     'application': False,

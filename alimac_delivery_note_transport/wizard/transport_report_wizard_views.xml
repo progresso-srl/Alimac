@@ -17,12 +17,12 @@
                     </group>
                 </group>
                 <footer>
-                    <button string="Print Report" 
-                            name="action_print_report" 
-                            type="object" 
+                    <button string="Print Report"
+                            name="action_print_report"
+                            type="object"
                             class="btn-primary"/>
-                    <button string="Cancel" 
-                            class="btn-secondary" 
+                    <button string="Cancel"
+                            class="btn-secondary"
                             special="cancel"/>
                 </footer>
             </form>
@@ -35,14 +35,12 @@
         <field name="res_model">transport.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="binding_model_id" ref="l10n_it_delivery_note.model_stock_delivery_note"/>
     </record>
 
-    <!-- Menu Item -->
+    <!-- Menu under Inventory Warehouse Management, next to Transport Analysis -->
     <menuitem id="menu_transport_monthly_report"
-              name="Monthly Report"
-              parent="l10n_it_delivery_note.menu_stock_delivery_note"
+              name="Monthly Transport Report"
+              parent="stock.menu_stock_warehouse_mgmt"
               action="action_transport_report_wizard"
-              sequence="60"/>
-
+              sequence="51"/>
 </odoo>

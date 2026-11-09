@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_delivery_note_user,stock.delivery.note.user,model_stock_delivery_note,stock.group_stock_user,1,1,1,0
+access_stock_delivery_note_manager,stock.delivery.note.manager,model_stock_delivery_note,stock.group_stock_manager,1,1,1,1
+access_stock_picking_transport_condition_user,stock.picking.transport.condition.user,model_stock_picking_transport_condition,stock.group_stock_user,1,0,0,0
+access_stock_picking_transport_condition_manager,stock.picking.transport.condition.manager,model_stock_picking_transport_condition,stock.group_stock_manager,1,1,1,1

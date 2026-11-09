@@ -1,43 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Invoice Form View: Add material and transport columns -->
+    <!-- Invoice Form View: material and transport columns on invoice lines -->
     <record id="account_move_form_view_inherit_transport" model="ir.ui.view">
         <field name="name">account.move.form.inherit.transport</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-            <!-- Add material and transport columns to invoice lines -->
-            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="after">
-                <field name="material_price_unit" 
-                       string="Material Price" 
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
+                <field name="material_price_unit"
+                       string="Material Price"
                        optional="hide"
                        readonly="1"/>
-                <field name="transport_price_unit" 
-                       string="Transport Quota" 
+                <field name="transport_price_unit"
+                       string="Transport Quota"
                        optional="hide"
                        readonly="1"/>
-                <field name="material_amount" 
-                       string="Material Amount" 
+                <field name="material_amount"
+                       string="Material Amount"
                        optional="hide"
                        readonly="1"
                        widget="monetary"/>
-                <field name="transport_amount" 
-                       string="Transport Amount" 
+                <field name="transport_amount"
+                       string="Transport Amount"
                        optional="hide"
                        readonly="1"
                        widget="monetary"/>
             </xpath>
         </field>
     </record>
-
-    <!-- Invoice Tree View -->
-    <record id="account_move_tree_view_inherit_transport" model="ir.ui.view">
-        <field name="name">account.move.tree.inherit.transport</field>
-        <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_invoice_tree"/>
-        <field name="arch" type="xml">
-            <!-- Can add fields if needed for tree view -->
-        </field>
-    </record>
-
 </odoo>

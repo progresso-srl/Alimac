@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from odoo.tools import float_round
 
 
 class SaleOrder(models.Model):
@@ -15,187 +16,196 @@ class SaleOrder(models.Model):
         help='Indicates whether transport costs have been incorporated into product prices',
     )
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
     def _get_transport_lines(self):
-        """Get all transport lines in the order"""
         self.ensure_one()
         return self.order_line.filtered(lambda l: l.product_id.is_transport)
 
     def _get_product_lines(self):
-        """Get all product lines (excluding transport)"""
         self.ensure_one()
-        return self.order_line.filtered(lambda l: not l.product_id.is_transport)
+        return self.order_line.filtered(
+            lambda l: not l.product_id.is_transport and not l.display_type
+        )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
 
     def _check_incorporation_conditions(self):
-        """Validate conditions for incorporating transport"""
         self.ensure_one()
-        
-        # Check if there are transport lines
         transport_lines = self._get_transport_lines()
         if not transport_lines:
             raise UserError(_('No transport line found in this order.'))
-        
-        # Check if already incorporated
         if self.transport_incorporated:
             raise UserError(_('Transport is already incorporated in this order.'))
-        
-        # Check if there are invoices
         if self.invoice_ids.filtered(lambda inv: inv.state == 'posted'):
             raise UserError(_('Cannot incorporate transport: this order has posted invoices.'))
-        
         return transport_lines
 
-    def _get_tonnage_for_line(self, line):
-        """
-        Convert line quantity to tonnage (base UoM)
-        Returns 0 if conversion is not possible
-        """
-        if not line.product_id or not line.product_uom:
+    # ------------------------------------------------------------------
+    # Tonnage
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _get_tonnage_for_line(line):
+        """Convert line qty to base UoM (expected: tonnes). Returns 0 if not convertible."""
+        if not line.product_id or not line.product_uom_id:
             return 0.0
-        
-        # Get the base UoM (should be 'tonne' or similar)
-        product = line.product_id
-        base_uom = product.uom_id
-        
-        # Check if we can convert to the base UoM
-        if not line.product_uom._compute_quantity(
-            1, base_uom, raise_if_failure=False
-        ):
-            return 0.0
-        
-        # Convert quantity to tonnage
+        base_uom = line.product_id.uom_id
         try:
-            tonnage = line.product_uom._compute_quantity(
-                line.product_uom_qty, base_uom
+            tonnage = line.product_uom_id._compute_quantity(
+                line.product_uom_qty, base_uom, raise_if_failure=False,
             )
-            return tonnage
         except Exception:
-            return 0.0
+            tonnage = 0.0
+        return tonnage or 0.0
+
+    # ------------------------------------------------------------------
+    # Distribution
+    # ------------------------------------------------------------------
 
     def _compute_transport_distribution(self, transport_lines, product_lines):
-        """
-        Compute transport distribution across product lines
-        Returns dict mapping line_id to transport amount
-        """
         self.ensure_one()
-        
-        # Calculate total transport amount
-        total_transport = sum(line.price_subtotal for line in transport_lines)
-        
-        # Calculate tonnage for each product line
+        total_transport = sum(l.price_subtotal for l in transport_lines)
+
         line_tonnage = {}
         total_tonnage = 0.0
-        
         for line in product_lines:
-            tonnage = self._get_tonnage_for_line(line)
-            if tonnage > 0:
-                line_tonnage[line.id] = tonnage
-                total_tonnage += tonnage
-        
-        # Validate we have tonnage
+            t = self._get_tonnage_for_line(line)
+            if t > 0:
+                line_tonnage[line.id] = t
+                total_tonnage += t
+
         if total_tonnage == 0:
-            raise UserError(_('Cannot incorporate transport: no product lines with convertible tonnage found.'))
-        
-        # Check that all product lines have same taxes as transport lines
-        transport_taxes = transport_lines[0].tax_id
+            raise UserError(
+                _('Cannot incorporate transport: no product lines with convertible tonnage found.')
+            )
+
+        # Tax consistency check
+        transport_taxes = transport_lines[0].tax_ids
         for line in product_lines:
-            if line_tonnage.get(line.id, 0) > 0:
-                if line.tax_id != transport_taxes:
-                    raise UserError(_(
-                        'Cannot incorporate transport: product line "%s" has different taxes than transport line.'
-                    ) % line.product_id.display_name)
-        
-        # Distribute transport proportionally
+            if line_tonnage.get(line.id, 0) > 0 and line.tax_ids != transport_taxes:
+                raise UserError(
+                    _('Cannot incorporate transport: product line "%s" has different taxes '
+                      'than transport line.') % line.product_id.display_name
+                )
+
+        # Proportional distribution with rounding remainder on largest line
+        prec = self.env['decimal.precision'].precision_get('Product Price')
         distribution = {}
-        for line_id, tonnage in line_tonnage.items():
-            distribution[line_id] = (tonnage / total_tonnage) * total_transport
-        
+        allocated = 0.0
+        largest_id = max(line_tonnage, key=line_tonnage.get)
+        for lid, tonnage in line_tonnage.items():
+            if lid == largest_id:
+                continue
+            quota = float_round(
+                (tonnage / total_tonnage) * total_transport, precision_digits=prec + 2,
+            )
+            distribution[lid] = quota
+            allocated += quota
+        # Remainder goes to the largest line
+        distribution[largest_id] = total_transport - allocated
+
         return distribution, total_transport
 
+    # ------------------------------------------------------------------
+    # Buttons
+    # ------------------------------------------------------------------
+
     def action_incorporate_transport(self):
-        """Incorporate transport costs into product prices"""
         for order in self:
-            # Validate conditions
             transport_lines = order._check_incorporation_conditions()
             product_lines = order._get_product_lines()
-            
             if not product_lines:
                 raise UserError(_('No product lines found to distribute transport.'))
-            
-            # Compute distribution
-            distribution, total_transport = order._compute_transport_distribution(
+
+            distribution, _total = order._compute_transport_distribution(
                 transport_lines, product_lines
             )
-            
-            # Update product lines
-            for line in product_lines:
+
+            # Use context flag so our write() guard lets the changes through
+            for line in product_lines.with_context(_transport_incorporating=True):
                 if line.id in distribution:
-                    transport_quota = distribution[line.id]
-                    
-                    # Save material price
-                    line.material_price_unit = line.price_unit
-                    
-                    # Calculate transport quota per unit
-                    # If there's a discount, we need to adjust
-                    quantity = line.product_uom_qty
+                    quota = distribution[line.id]
+                    qty = line.product_uom_qty
                     discount_factor = 1 - (line.discount / 100.0)
-                    
-                    if quantity > 0 and discount_factor > 0:
-                        transport_per_unit = transport_quota / (quantity * discount_factor)
+                    if qty > 0 and discount_factor > 0:
+                        transport_per_unit = quota / (qty * discount_factor)
                     else:
                         transport_per_unit = 0.0
-                    
-                    line.transport_price_unit = transport_per_unit
-                    
-                    # Update price_unit to include transport
-                    line.price_unit = line.material_price_unit + transport_per_unit
-            
-            # Set transport line to 0 and save reference amount
-            for line in transport_lines:
-                line.transport_reference_amount = line.price_subtotal
-                line.price_unit = 0.0
-            
-            # Mark as incorporated
+                    line.write({
+                        'material_price_unit': line.price_unit,
+                        'transport_price_unit': transport_per_unit,
+                        'price_unit': line.price_unit + transport_per_unit,
+                    })
+
+            for line in transport_lines.with_context(_transport_incorporating=True):
+                line.write({
+                    'transport_reference_amount': line.price_subtotal,
+                    'price_unit': 0.0,
+                })
+
             order.transport_incorporated = True
 
     def action_uncorporate_transport(self):
-        """Restore original prices and transport line"""
         for order in self:
             if not order.transport_incorporated:
                 raise UserError(_('Transport is not incorporated in this order.'))
-            
-            # Check if there are posted invoices
             if order.invoice_ids.filtered(lambda inv: inv.state == 'posted'):
-                raise UserError(_('Cannot uncorporate transport: this order has posted invoices.'))
-            
-            # Restore product lines
-            product_lines = order._get_product_lines()
-            for line in product_lines:
+                raise UserError(
+                    _('Cannot uncorporate transport: this order has posted invoices.')
+                )
+
+            for line in order._get_product_lines().with_context(_transport_incorporating=True):
                 if line.material_price_unit:
-                    line.price_unit = line.material_price_unit
-                    line.material_price_unit = 0.0
-                    line.transport_price_unit = 0.0
-            
-            # Restore transport lines
-            transport_lines = order._get_transport_lines()
-            for line in transport_lines:
+                    line.write({
+                        'price_unit': line.material_price_unit,
+                        'material_price_unit': 0.0,
+                        'transport_price_unit': 0.0,
+                    })
+
+            for line in order._get_transport_lines().with_context(_transport_incorporating=True):
                 if line.transport_reference_amount:
-                    # Restore original price from reference amount
-                    if line.product_uom_qty:
-                        line.price_unit = line.transport_reference_amount / line.product_uom_qty
-                    line.transport_reference_amount = 0.0
-            
-            # Mark as not incorporated
+                    price = (line.transport_reference_amount / line.product_uom_qty
+                             if line.product_uom_qty else 0.0)
+                    line.write({
+                        'price_unit': price,
+                        'transport_reference_amount': 0.0,
+                    })
+
             order.transport_incorporated = False
 
-    def copy_data(self, default=None):
-        """
-        When duplicating an order, maintain incorporated state consistently
-        Copy transport_incorporated and all related fields
-        """
-        res = super().copy_data(default=default)
-        
-        # The copy maintains the incorporated state and all fields are copied
-        # This ensures consistency: if transport_incorporated=True, the prices
-        # are already incorporated and material/transport fields are preserved
-        
-        return res
+    # ------------------------------------------------------------------
+    # Invoicing: exclude incorporated transport lines
+    # ------------------------------------------------------------------
+
+    def _get_invoiceable_lines(self, final=False):
+        """In Odoo 19 this is on sale.order, not on sale.order.line."""
+        lines = super()._get_invoiceable_lines(final=final)
+        return lines.filtered(
+            lambda l: not (
+                l.product_id.is_transport
+                and l.order_id.transport_incorporated
+                and l.transport_reference_amount > 0
+                and l.price_unit == 0
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Reports: hide incorporated transport lines from PDF / portal
+    # ------------------------------------------------------------------
+
+    def _get_order_lines_to_report(self):
+        lines = super()._get_order_lines_to_report()
+        if self.transport_incorporated:
+            lines = lines.filtered(
+                lambda l: not (
+                    l.product_id.is_transport
+                    and l.transport_reference_amount > 0
+                    and l.price_unit == 0
+                )
+            )
+        return lines
