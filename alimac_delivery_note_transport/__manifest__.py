@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Alimac Delivery Note Transport',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'category': 'Warehouse',
     'summary': 'Track transport costs on DDT and generate carrier reports (replaces Gestra)',
     'description': """
@@ -41,9 +41,8 @@ Gestra - Internal legacy system from 2001 for transport cost tracking and report
     'website': 'https://www.progresso.it',
     'license': 'LGPL-3',
     'depends': [
+        # DDT di l10n_it_progresso (porting 19.0 del modulo OCA)
         'l10n_it_delivery_note',
-        'delivery',
-        'stock',
     ],
     'data': [
         'security/ir.model.access.csv',

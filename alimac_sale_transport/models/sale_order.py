@@ -49,19 +49,23 @@ class SaleOrder(models.Model):
     # Tonnage
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _get_tonnage_for_line(line):
-        """Convert line qty to base UoM (expected: tonnes). Returns 0 if not convertible."""
+    def _get_tonnage_for_line(self, line):
+        """Tonnellate della riga. In Odoo 19 _compute_quantity non fallisce mai
+        (moltiplica i fattori), quindi va controllato che l'UdM sia un peso:
+        se lo è si converte in tonnellate, altrimenti si usa il peso del
+        prodotto × quantità. 0 se il prodotto non ha peso."""
         if not line.product_id or not line.product_uom_id:
             return 0.0
-        base_uom = line.product_id.uom_id
-        try:
-            tonnage = line.product_uom_id._compute_quantity(
-                line.product_uom_qty, base_uom, raise_if_failure=False,
-            )
-        except Exception:
-            tonnage = 0.0
-        return tonnage or 0.0
+        ton = self.env.ref('uom.product_uom_ton')
+        uom = line.product_uom_id
+        if uom._has_common_reference(ton):
+            return uom._compute_quantity(line.product_uom_qty, ton, round=False)
+        product = line.product_id
+        if not product.weight:
+            return 0.0
+        qty = uom._compute_quantity(line.product_uom_qty, product.uom_id, round=False)
+        weight_uom = self.env['product.template']._get_weight_uom_id_from_ir_config_parameter()
+        return weight_uom._compute_quantity(product.weight * qty, ton, round=False)
 
     # ------------------------------------------------------------------
     # Distribution

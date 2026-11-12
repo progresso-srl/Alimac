@@ -6,7 +6,9 @@
         <field name="model">stock.delivery.note</field>
         <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='carrier_id']" position="after">
+            <!-- primo carrier_id: quello del DDT (il secondo è nella lista dei prelievi) -->
+            <xpath expr="(//field[@name='carrier_id'])[1]" position="after">
+                <field name="transport_currency_id" invisible="1"/>
                 <field name="transport_cost" widget="monetary"/>
                 <field name="transport_tons" readonly="1"/>
             </xpath>
@@ -19,7 +21,10 @@
         <field name="model">stock.delivery.note</field>
         <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_tree_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='carrier_id']" position="after">
+            <!-- la lista del DDT non mostra il vettore -->
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="carrier_id" optional="show"/>
+                <field name="transport_currency_id" column_invisible="1"/>
                 <field name="transport_cost" sum="Total Transport Cost" widget="monetary" optional="show"/>
                 <field name="transport_tons" sum="Total Tonnage" optional="show"/>
                 <field name="destination_partner_id" optional="hide"/>
@@ -33,7 +38,6 @@
         <field name="model">stock.delivery.note</field>
         <field name="inherit_id" ref="l10n_it_delivery_note.stock_delivery_note_search_view"/>
         <field name="arch" type="xml">
-            <!-- OCA filter is named "done", not "state_done" -->
             <xpath expr="//filter[@name='done']" position="after">
                 <separator/>
                 <!-- ref() does not evaluate in XML domain client-side,
@@ -53,12 +57,7 @@
                         help="Show only DDT with transport cost"/>
             </xpath>
 
-            <!-- OCA group-by filter is named "group_by_partner" -->
-            <xpath expr="//filter[@name='group_by_partner']" position="after">
-                <separator/>
-                <filter name="group_by_carrier"
-                        string="Carrier"
-                        context="{'group_by': 'carrier_id'}"/>
+            <xpath expr="//filter[@name='group_by_carrier_id']" position="after">
                 <filter name="group_by_destination"
                         string="Destination"
                         context="{'group_by': 'destination_partner_id'}"/>
@@ -71,7 +70,6 @@
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="carrier_id"/>
                 <field name="destination_partner_id"/>
                 <field name="transport_condition_id"/>
             </xpath>

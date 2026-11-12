@@ -31,8 +31,9 @@ class TransportReportWizard(models.TransientModel):
         default=lambda self: datetime.now().year,
     )
 
+    # sul DDT il vettore è un contatto (res.partner), non un metodo di consegna
     carrier_id = fields.Many2one(
-        'delivery.carrier',
+        'res.partner',
         string='Carrier',
         help='Leave empty to include all carriers',
     )

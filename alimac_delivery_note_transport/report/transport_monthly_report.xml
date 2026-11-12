@@ -22,20 +22,20 @@
                             <div class="col-12 text-center">
                                 <h2>Monthly Transport Report</h2>
                                 <h4>
-                                    <t t-esc="data.get('month_name')"/>
-                                    <t t-esc="data.get('year')"/>
+                                    <t t-esc="month_name"/>
+                                    <t t-esc="year"/>
                                 </h4>
                                 <p>
-                                    Period: <t t-esc="data.get('date_from')"/> - <t t-esc="data.get('date_to')"/>
+                                    Period: <t t-esc="date_from"/> - <t t-esc="date_to"/>
                                 </p>
-                                <t t-if="data.get('carrier_id')">
-                                    <p>Carrier: <strong><t t-esc="data.get('carrier_name')"/></strong></p>
+                                <t t-if="carrier_id">
+                                    <p>Carrier: <strong><t t-esc="carrier_name"/></strong></p>
                                 </t>
                             </div>
                         </div>
 
                         <!-- Report Data -->
-                        <t t-set="report_data" t-value="data.get('report_data', [])"/>
+                        <t t-set="report_data" t-value="report_data or []"/>
                         
                         <t t-if="not report_data">
                             <div class="alert alert-warning" role="alert">
