@@ -1,0 +1,365 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* alimac_delivery_note_transport
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-17 16:37+0000\n"
+"PO-Revision-Date: 2026-11-17 16:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "<strong>GRAND TOTAL</strong>"
+msgstr "<strong>TOTALE GENERALE</strong>"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Active DDT"
+msgstr "DDT attivi"
+
+#. module: alimac_delivery_note_transport
+#. odoo-python
+#: code:addons/alimac_delivery_note_transport/wizard/transport_report_wizard.py:0
+msgid "All Carriers"
+msgstr "Tutti i vettori"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__4
+msgid "April"
+msgstr "Aprile"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__8
+msgid "August"
+msgstr "Agosto"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.transport_report_wizard_form_view
+msgid "Cancel"
+msgstr "Annulla"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__carrier_id
+msgid "Carrier"
+msgstr "Vettore"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Carrier:"
+msgstr "Vettore:"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "City"
+msgstr "Città"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Cost (€)"
+msgstr "Costo (€)"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_stock_delivery_note__transport_cost
+msgid "Cost paid to the carrier for this delivery"
+msgstr "Costo pagato al vettore per questo trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__create_uid
+msgid "Created by"
+msgstr "Creato da"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__create_date
+msgid "Created on"
+msgstr "Creato il"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model,name:alimac_delivery_note_transport.model_stock_delivery_note
+msgid "DDT"
+msgstr "DDT"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__12
+msgid "December"
+msgstr "Dicembre"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__destination_partner_id
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Destination"
+msgstr "Destinazione"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__display_name
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__display_name
+msgid "Display Name"
+msgstr "Nome visualizzato"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__2
+msgid "February"
+msgstr "Febbraio"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__id
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: alimac_delivery_note_transport
+#. odoo-python
+#: code:addons/alimac_delivery_note_transport/wizard/transport_report_wizard.py:0
+msgid "Invalid year selected"
+msgstr "Anno selezionato non valido"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__1
+msgid "January"
+msgstr "Gennaio"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__7
+msgid "July"
+msgstr "Luglio"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__6
+msgid "June"
+msgstr "Giugno"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Ultimo aggiornamento di"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__write_date
+msgid "Last Updated on"
+msgstr "Ultimo aggiornamento il"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_transport_report_wizard__carrier_id
+msgid "Leave empty to include all carriers"
+msgstr "Lasciare vuoto per includere tutti i vettori"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__3
+msgid "March"
+msgstr "Marzo"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__5
+msgid "May"
+msgstr "Maggio"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__month
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Month"
+msgstr "Mese"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.actions.act_window,name:alimac_delivery_note_transport.action_transport_report_wizard
+#: model:ir.actions.report,name:alimac_delivery_note_transport.action_report_transport_monthly
+#: model:ir.ui.menu,name:alimac_delivery_note_transport.menu_transport_monthly_report
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.transport_report_wizard_form_view
+msgid "Monthly Transport Report"
+msgstr "Rendiconto mensile trasporti"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model,name:alimac_delivery_note_transport.model_transport_report_wizard
+msgid "Monthly Transport Report Wizard"
+msgstr "Procedura rendiconto mensile trasporti"
+
+#. module: alimac_delivery_note_transport
+#. odoo-python
+#: code:addons/alimac_delivery_note_transport/wizard/transport_report_wizard.py:0
+msgid "No Carrier"
+msgstr "Nessun vettore"
+
+#. module: alimac_delivery_note_transport
+#. odoo-python
+#: code:addons/alimac_delivery_note_transport/wizard/transport_report_wizard.py:0
+msgid "No Destination"
+msgstr "Nessuna destinazione"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.actions.act_window,help:alimac_delivery_note_transport.action_delivery_note_transport_pivot
+msgid "No delivery notes found"
+msgstr "Nessun DDT trovato"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "No transport data found for the selected period and criteria."
+msgstr "Nessun trasporto trovato per il periodo e i criteri selezionati."
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__11
+msgid "November"
+msgstr "Novembre"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__10
+msgid "October"
+msgstr "Ottobre"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Period:"
+msgstr "Periodo:"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Porto Franco"
+msgstr "Porto franco"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.transport_report_wizard_form_view
+msgid "Print Report"
+msgstr "Stampa rendiconto"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Report generated on"
+msgstr "Rendiconto generato il"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields.selection,name:alimac_delivery_note_transport.selection__transport_report_wizard__month__9
+msgid "September"
+msgstr "Settembre"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_stock_delivery_note__destination_partner_id
+msgid "Shipping address or fallback to partner if not set"
+msgstr "Indirizzo di consegna o, se assente, destinatario del DDT"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Show confirmed, validated and invoiced DDT"
+msgstr "Mostra i DDT confermati, validati e fatturati"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Show only DDT with transport cost"
+msgstr "Mostra solo i DDT con costo di trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Show only Porto Franco deliveries"
+msgstr "Mostra solo i DDT in porto franco"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Subtotal"
+msgstr "Subtotale"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid ""
+"This report shows transport costs paid to carriers for deliveries in \"Porto"
+" Franco\" condition."
+msgstr ""
+"Il rendiconto riporta i costi pagati ai vettori per i trasporti in porto "
+"franco."
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.actions.act_window,help:alimac_delivery_note_transport.action_delivery_note_transport_pivot
+msgid ""
+"This view shows transport analysis by carrier and destination.\n"
+"                Default filters show Porto Franco and active DDT."
+msgstr ""
+"Analisi dei trasporti per vettore e destinazione.\n"
+"                Di default mostra i DDT attivi in porto franco."
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Tonnage"
+msgstr "Tonnellate"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_list_view_inherit_transport
+msgid "Total Tonnage"
+msgstr "Totale tonnellate"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_list_view_inherit_transport
+msgid "Total Transport Cost"
+msgstr "Totale costo trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_stock_delivery_note__transport_tons
+msgid ""
+"Total tonnes transported: done quantities converted to tonnes, or product "
+"weight × quantity for products not measured by weight"
+msgstr ""
+"Tonnellate trasportate: quantità consegnate convertite in tonnellate, oppure"
+" peso prodotto × quantità per i prodotti non gestiti a peso"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.actions.act_window,name:alimac_delivery_note_transport.action_delivery_note_transport_pivot
+#: model:ir.ui.menu,name:alimac_delivery_note_transport.menu_delivery_note_transport_analysis
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_graph_view_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_pivot_view_transport
+msgid "Transport Analysis"
+msgstr "Analisi trasporti"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "Transport Condition"
+msgstr "Condizione di trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__transport_condition_ids
+msgid "Transport Conditions"
+msgstr "Condizioni di trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__transport_cost
+msgid "Transport Cost"
+msgstr "Costo trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__transport_currency_id
+msgid "Transport Currency"
+msgstr "Valuta trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_delivery_note__transport_tons
+msgid "Transport Tonnage"
+msgstr "Tonnellate trasportate"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_transport_report_wizard__transport_condition_ids
+msgid "Transport conditions to include in the report"
+msgstr "Condizioni di trasporto da includere nel rendiconto"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "Trips"
+msgstr "Viaggi"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_search_view_inherit_transport
+msgid "With Transport Cost"
+msgstr "Con costo di trasporto"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_transport_report_wizard__year
+msgid "Year"
+msgstr "Anno"
+
+#. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+msgid "t"
+msgstr "t"

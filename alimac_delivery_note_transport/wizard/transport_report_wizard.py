@@ -78,7 +78,7 @@ class TransportReportWizard(models.TransientModel):
         data = {
             'month': self.month,
             'year': self.year,
-            'month_name': dict(self._fields['month'].selection).get(self.month),
+            'month_name': dict(self._fields['month']._description_selection(self.env)).get(self.month),
             'carrier_id': self.carrier_id.id if self.carrier_id else False,
             'carrier_name': self.carrier_id.name if self.carrier_id else _('All Carriers'),
             'date_from': date_from.strftime('%d/%m/%Y'),
