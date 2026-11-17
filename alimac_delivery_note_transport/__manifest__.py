@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Alimac Delivery Note Transport',
-    'version': '19.0.2.0.0',
+    'version': '19.0.2.0.1',
     'category': 'Warehouse',
     'summary': 'Track transport costs on DDT and generate carrier reports (replaces Gestra)',
     'description': """

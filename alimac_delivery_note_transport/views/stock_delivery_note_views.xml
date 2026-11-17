@@ -47,10 +47,13 @@
                         string="Porto Franco"
                         domain="[('transport_condition_id.name', '=', 'Porto franco')]"
                         help="Show only Porto Franco deliveries"/>
+                <!-- gruppi separati: i filtri si combinano in AND, non in OR -->
+                <separator/>
                 <filter name="active_ddt"
                         string="Active DDT"
                         domain="[('state', 'not in', ('draft', 'cancel'))]"
                         help="Show confirmed, validated and invoiced DDT"/>
+                <separator/>
                 <filter name="with_transport_cost"
                         string="With Transport Cost"
                         domain="[('transport_cost', '&gt;', 0)]"

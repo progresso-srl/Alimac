@@ -13,8 +13,9 @@
 
     <!-- Report Template -->
     <template id="report_transport_monthly_document">
+        <!-- I dati arrivano da `data` (wizard): con data il client non passa i docids,
+             quindi `docs` è vuoto e non va usato per il ciclo. -->
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
                     <div class="page">
                         <!-- Report Header -->
@@ -121,7 +122,6 @@
                         </div>
                     </div>
                 </t>
-            </t>
         </t>
     </template>
 
