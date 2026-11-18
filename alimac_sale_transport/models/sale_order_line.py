@@ -54,7 +54,7 @@ class SaleOrderLine(models.Model):
                  'transport_price_unit', 'price_subtotal')
     def _compute_material_transport_amounts(self):
         for line in self:
-            if line.material_price_unit:
+            if line.material_price_unit or line.transport_price_unit:
                 discount_factor = 1 - (line.discount / 100.0)
                 line.material_amount = (
                     line.material_price_unit * line.product_uom_qty * discount_factor
@@ -131,7 +131,7 @@ class SaleOrderLine(models.Model):
                 # Any non-cancelled invoice (draft included): the Uncorporate
                 # button is hidden as soon as an invoice exists, so don't
                 # suggest it.
-                if order.invoice_ids.filtered(lambda inv: inv.state != 'cancel'):
+                if order._get_active_invoices():
                     raise UserError(_(
                         'Cannot delete order lines: transport is incorporated '
                         'and the order has already been invoiced.'

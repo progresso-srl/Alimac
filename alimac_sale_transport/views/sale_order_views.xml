@@ -12,19 +12,20 @@
                         string="Incorporate Transport"
                         type="object"
                         class="btn-primary"
-                        invisible="transport_incorporated or invoice_count &gt; 0"
+                        invisible="transport_incorporated or transport_has_invoices"
                         help="Distribute transport costs proportionally across product lines"/>
                 <button name="action_uncorporate_transport"
                         string="Uncorporate Transport"
                         type="object"
                         class="btn-secondary"
-                        invisible="not transport_incorporated or invoice_count &gt; 0"
+                        invisible="not transport_incorporated or transport_has_invoices"
                         help="Restore original prices and transport line"/>
             </xpath>
 
             <!-- Hidden field for conditionals -->
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="transport_incorporated" invisible="1"/>
+                <field name="transport_has_invoices" invisible="1"/>
             </xpath>
 
             <!-- Alert banner when incorporated -->

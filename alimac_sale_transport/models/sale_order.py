@@ -16,9 +16,36 @@ class SaleOrder(models.Model):
         help='Indicates whether transport costs have been incorporated into product prices',
     )
 
+    transport_has_invoices = fields.Boolean(
+        string='Has Active Invoices',
+        compute='_compute_transport_has_invoices',
+        help='True if the order has at least one non-cancelled invoice: '
+             'transport can no longer be incorporated or uncorporated.',
+    )
+
+    @api.depends('order_line.invoice_lines.move_id.state')
+    def _compute_transport_has_invoices(self):
+        for order in self:
+            order.transport_has_invoices = bool(order._get_active_invoices())
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _get_active_invoices(self):
+        """Single rule used everywhere (buttons, incorporate, uncorporate,
+        line deletion): every invoice that is not cancelled, drafts included.
+        A cancelled invoice no longer blocks the transport handling."""
+        self.ensure_one()
+        return self.invoice_ids.filtered(lambda inv: inv.state != 'cancel')
+
+    def _check_transport_invoices(self, posted_msg, draft_msg):
+        self.ensure_one()
+        invoices = self._get_active_invoices()
+        if invoices.filtered(lambda inv: inv.state == 'posted'):
+            raise UserError(posted_msg)
+        if invoices:
+            raise UserError(draft_msg)
 
     def _get_transport_lines(self):
         self.ensure_one()
@@ -41,8 +68,11 @@ class SaleOrder(models.Model):
             raise UserError(_('No transport line found in this order.'))
         if self.transport_incorporated:
             raise UserError(_('Transport is already incorporated in this order.'))
-        if self.invoice_ids.filtered(lambda inv: inv.state == 'posted'):
-            raise UserError(_('Cannot incorporate transport: this order has posted invoices.'))
+        self._check_transport_invoices(
+            _('Cannot incorporate transport: this order has posted invoices.'),
+            _('Cannot incorporate transport: this order has draft invoices. '
+              'Delete or cancel them first.'),
+        )
         return transport_lines
 
     # ------------------------------------------------------------------
@@ -163,13 +193,17 @@ class SaleOrder(models.Model):
         for order in self:
             if not order.transport_incorporated:
                 raise UserError(_('Transport is not incorporated in this order.'))
-            if order.invoice_ids.filtered(lambda inv: inv.state == 'posted'):
-                raise UserError(
-                    _('Cannot uncorporate transport: this order has posted invoices.')
-                )
+            order._check_transport_invoices(
+                _('Cannot uncorporate transport: this order has posted invoices.'),
+                _('Cannot uncorporate transport: this order has draft invoices. '
+                  'Delete or cancel them first.'),
+            )
 
+            # A line priced 0 (e.g. free goods) still gets a transport quota:
+            # its material_price_unit is 0, so detect incorporated lines on
+            # either field, not on material_price_unit alone.
             for line in order._get_product_lines().with_context(_transport_incorporating=True):
-                if line.material_price_unit:
+                if line.material_price_unit or line.transport_price_unit:
                     line.write({
                         'price_unit': line.material_price_unit,
                         'material_price_unit': 0.0,

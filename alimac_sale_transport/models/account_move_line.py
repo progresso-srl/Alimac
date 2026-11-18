@@ -51,7 +51,7 @@ class AccountMoveLine(models.Model):
         For credit notes, amounts will be negative (consistent with price_subtotal)
         """
         for line in self:
-            if line.material_price_unit:
+            if line.material_price_unit or line.transport_price_unit:
                 # Calculate material amount with discount applied
                 discount_factor = 1 - (line.discount / 100.0)
                 line.material_amount = line.material_price_unit * line.quantity * discount_factor
