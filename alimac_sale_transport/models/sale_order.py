@@ -202,6 +202,27 @@ class SaleOrder(models.Model):
     # Reports: hide incorporated transport lines from PDF / portal
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Delivery: block "Add shipping" / "Update shipping cost" when
+    # incorporated, otherwise set_delivery_line() would delete the zeroed
+    # transport line and create a new one at full price (double transport).
+    # ------------------------------------------------------------------
+
+    def _check_delivery_change_allowed(self):
+        if self.filtered('transport_incorporated'):
+            raise UserError(_(
+                'Cannot change the shipping method when transport is incorporated. '
+                'Please use "Uncorporate Transport" button first.'
+            ))
+
+    def action_open_delivery_wizard(self):
+        self._check_delivery_change_allowed()
+        return super().action_open_delivery_wizard()
+
+    def set_delivery_line(self, carrier, amount):
+        self._check_delivery_change_allowed()
+        return super().set_delivery_line(carrier, amount)
+
     def _get_order_lines_to_report(self):
         lines = super()._get_order_lines_to_report()
         if self.transport_incorporated:

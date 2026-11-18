@@ -31,8 +31,7 @@
             <xpath expr="//sheet" position="before">
                 <div class="alert alert-info" role="alert"
                      invisible="not transport_incorporated">
-                    <strong>Transport Incorporated:</strong>
-                    Order lines are locked. Use "Uncorporate Transport" to modify them.
+                    <strong>Transport Incorporated:</strong> Order lines are locked. Use "Uncorporate Transport" to modify them.
                 </div>
             </xpath>
 

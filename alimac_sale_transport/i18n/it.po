@@ -1,0 +1,210 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* alimac_sale_transport
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "<strong>Transport Incorporated:</strong> Order lines are locked. Use \"Uncorporate Transport\" to modify them."
+msgstr "<strong>Trasporto incorporato:</strong> le righe d'ordine sono bloccate. Usare \"Scorpora trasporto\" per modificarle."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order_line.py:0
+msgid "Cannot add new product lines when transport is incorporated. Please use \"Uncorporate Transport\" button first."
+msgstr "Impossibile aggiungere righe prodotto con il trasporto incorporato. Usare prima il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Cannot change the shipping method when transport is incorporated. Please use \"Uncorporate Transport\" button first."
+msgstr "Impossibile modificare la spedizione con il trasporto incorporato. Usare prima il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Cannot incorporate transport: no product lines with convertible tonnage found."
+msgstr "Impossibile incorporare il trasporto: nessuna riga prodotto convertibile in tonnellate."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+#, python-format
+msgid "Cannot incorporate transport: product line \"%s\" has different taxes than transport line."
+msgstr "Impossibile incorporare il trasporto: la riga prodotto \"%s\" ha imposte diverse dalla riga trasporto."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Cannot incorporate transport: this order has posted invoices."
+msgstr "Impossibile incorporare il trasporto: l'ordine ha fatture registrate."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order_line.py:0
+msgid "Cannot modify order lines when transport is incorporated. Please use \"Uncorporate Transport\" button first."
+msgstr "Impossibile modificare le righe d'ordine con il trasporto incorporato. Usare prima il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Cannot uncorporate transport: this order has posted invoices."
+msgstr "Impossibile scorporare il trasporto: l'ordine ha fatture registrate."
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_product_template__is_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_product_product__is_transport
+msgid "Check this if this product represents transport costs"
+msgstr "Spuntare se il prodotto rappresenta i costi di trasporto"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "Distribute transport costs proportionally across product lines"
+msgstr "Ripartisce il trasporto sulle righe prodotto in proporzione alle tonnellate"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "Incorporate Transport"
+msgstr "Incorpora trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order__transport_incorporated
+msgid "Indicates whether transport costs have been incorporated into product prices"
+msgstr "Indica se i costi di trasporto sono stati incorporati nei prezzi dei prodotti"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_product_template__is_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_product_product__is_transport
+msgid "Is Transport"
+msgstr "Prodotto trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__material_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__material_amount
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
+msgid "Material Amount"
+msgstr "Importo materiale"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order_line__material_amount
+#: model:ir.model.fields,help:alimac_sale_transport.field_account_move_line__material_amount
+msgid "Material amount net of discount: material_price_unit × qty × (1 - discount%)"
+msgstr "Importo materiale al netto dello sconto: prezzo materiale × quantità × (1 - sconto%)"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
+msgid "Material Price"
+msgstr "Prezzo materiale"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__material_price_unit
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__material_price_unit
+msgid "Material Price Unit"
+msgstr "Prezzo unitario materiale"
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "No product lines found to distribute transport."
+msgstr "Nessuna riga prodotto su cui ripartire il trasporto."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "No transport line found in this order."
+msgstr "Nessuna riga trasporto presente nell'ordine."
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order_line__transport_reference_amount
+msgid "Original transport amount when incorporated (shown on transport line only)"
+msgstr "Importo originale del trasporto al momento dell'incorporazione (visibile solo sulla riga trasporto)"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order_line__material_price_unit
+#: model:ir.model.fields,help:alimac_sale_transport.field_account_move_line__material_price_unit
+msgid "Price per unit excluding transport"
+msgstr "Prezzo unitario escluso trasporto"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "Restore original prices and transport line"
+msgstr "Ripristina i prezzi originali e la riga trasporto"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.product_template_form_view_inherit_transport
+msgid "Transport"
+msgstr "Trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__transport_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__transport_amount
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
+msgid "Transport Amount"
+msgstr "Importo trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order_line__transport_amount
+#: model:ir.model.fields,help:alimac_sale_transport.field_account_move_line__transport_amount
+msgid "Transport amount: price_subtotal - material_amount"
+msgstr "Importo trasporto: imponibile riga - importo materiale"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order__transport_incorporated
+msgid "Transport Incorporated"
+msgstr "Trasporto incorporato"
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Transport is already incorporated in this order."
+msgstr "Il trasporto è già incorporato in questo ordine."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "Transport is not incorporated in this order."
+msgstr "Il trasporto non è incorporato in questo ordine."
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__transport_price_unit
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__transport_price_unit
+msgid "Transport Price Unit"
+msgstr "Quota trasporto unitaria"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
+msgid "Transport Quota"
+msgstr "Quota trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,help:alimac_sale_transport.field_sale_order_line__transport_price_unit
+#: model:ir.model.fields,help:alimac_sale_transport.field_account_move_line__transport_price_unit
+msgid "Transport quota per unit"
+msgstr "Quota di trasporto per unità"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "Transport Ref."
+msgstr "Rif. trasporto"
+
+#. module: alimac_sale_transport
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__transport_reference_amount
+msgid "Transport Reference Amount"
+msgstr "Importo trasporto di riferimento"
+
+#. module: alimac_sale_transport
+#: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
+msgid "Uncorporate Transport"
+msgstr "Scorpora trasporto"
