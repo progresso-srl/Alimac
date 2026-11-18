@@ -66,6 +66,31 @@
                        widget="monetary"/>
             </xpath>
 
+            <!-- Lock line fields in the UI when transport is incorporated:
+                 the user must uncorporate first (server-side guard in
+                 sale.order.line.write stays as safety net). -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_template_id']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_id']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='discount']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='tax_ids']" position="attributes">
+                <attribute name="readonly" add="parent.transport_incorporated" separator="or"/>
+            </xpath>
+
             <!-- Grey-out incorporated transport lines -->
             <xpath expr="//field[@name='order_line']/list" position="attributes">
                 <attribute name="decoration-muted">product_id.is_transport and transport_reference_amount &gt; 0 and price_unit == 0</attribute>
