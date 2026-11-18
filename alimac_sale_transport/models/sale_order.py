@@ -188,6 +188,19 @@ class SaleOrder(models.Model):
             order.transport_incorporated = False
 
     # ------------------------------------------------------------------
+    # Duplicate: not allowed while transport is incorporated. The user must
+    # uncorporate first, so copies always start from material prices.
+    # ------------------------------------------------------------------
+
+    def copy(self, default=None):
+        if self.filtered('transport_incorporated'):
+            raise UserError(_(
+                'To duplicate this order, uncorporate the transport first '
+                'using the "Uncorporate Transport" button.'
+            ))
+        return super().copy(default=default)
+
+    # ------------------------------------------------------------------
     # Invoicing: exclude incorporated transport lines
     # ------------------------------------------------------------------
 

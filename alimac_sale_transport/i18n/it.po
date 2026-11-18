@@ -159,6 +159,12 @@ msgid "Restore original prices and transport line"
 msgstr "Ripristina i prezzi originali e la riga trasporto"
 
 #. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order.py:0
+msgid "To duplicate this order, uncorporate the transport first using the \"Uncorporate Transport\" button."
+msgstr "Per duplicare questo ordine, scorpora prima il trasporto con il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
 #: model_terms:ir.ui.view,arch_db:alimac_sale_transport.product_template_form_view_inherit_transport
 msgid "Transport"
 msgstr "Trasporto"
