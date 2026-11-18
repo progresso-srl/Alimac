@@ -117,6 +117,37 @@ class SaleOrderLine(models.Model):
         return super().create(vals_list)
 
     # ------------------------------------------------------------------
+    # Unlink guard: deleting a line of an incorporated order would leave the
+    # transport quota inside the product prices (transport line) or silently
+    # drop part of the transport (product line).
+    # ------------------------------------------------------------------
+
+    def unlink(self):
+        if not self.env.context.get('_transport_incorporating'):
+            for line in self:
+                order = line.order_id
+                if not order.transport_incorporated or line.display_type:
+                    continue
+                # Any non-cancelled invoice (draft included): the Uncorporate
+                # button is hidden as soon as an invoice exists, so don't
+                # suggest it.
+                if order.invoice_ids.filtered(lambda inv: inv.state != 'cancel'):
+                    raise UserError(_(
+                        'Cannot delete order lines: transport is incorporated '
+                        'and the order has already been invoiced.'
+                    ))
+                if line.product_id.is_transport:
+                    raise UserError(_(
+                        'Cannot delete the transport/shipping line while transport is '
+                        'incorporated. Please use "Uncorporate Transport" button first.'
+                    ))
+                raise UserError(_(
+                    'Cannot delete order lines when transport is incorporated. '
+                    'Please use "Uncorporate Transport" button first.'
+                ))
+        return super().unlink()
+
+    # ------------------------------------------------------------------
     # Invoice line preparation
     # ------------------------------------------------------------------
 

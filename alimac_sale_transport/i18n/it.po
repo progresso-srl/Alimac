@@ -30,6 +30,24 @@ msgstr "Impossibile modificare la spedizione con il trasporto incorporato. Usare
 
 #. module: alimac_sale_transport
 #. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order_line.py:0
+msgid "Cannot delete order lines when transport is incorporated. Please use \"Uncorporate Transport\" button first."
+msgstr "Impossibile eliminare righe d'ordine con il trasporto incorporato. Usare prima il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order_line.py:0
+msgid "Cannot delete order lines: transport is incorporated and the order has already been invoiced."
+msgstr "Impossibile eliminare righe: il trasporto è incorporato e l'ordine è già stato fatturato."
+
+#. module: alimac_sale_transport
+#. odoo-python
+#: code:addons/alimac_sale_transport/models/sale_order_line.py:0
+msgid "Cannot delete the transport/shipping line while transport is incorporated. Please use \"Uncorporate Transport\" button first."
+msgstr "Impossibile eliminare la riga trasporto/spedizione con il trasporto incorporato. Usare prima il pulsante \"Scorpora trasporto\"."
+
+#. module: alimac_sale_transport
+#. odoo-python
 #: code:addons/alimac_sale_transport/models/sale_order.py:0
 msgid "Cannot incorporate transport: no product lines with convertible tonnage found."
 msgstr "Impossibile incorporare il trasporto: nessuna riga prodotto convertibile in tonnellate."

@@ -152,7 +152,12 @@ class SaleOrder(models.Model):
                     'price_unit': 0.0,
                 })
 
-            order.transport_incorporated = True
+            # Shipping is frozen while incorporated (see _check_delivery_change_allowed):
+            # clear the "recompute shipping" warning so the line isn't left yellow.
+            order.write({
+                'transport_incorporated': True,
+                'recompute_delivery_price': False,
+            })
 
     def action_uncorporate_transport(self):
         for order in self:
