@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Modulo | `alimac_mrp_imballo_pallet` |
-| Versione | 19.0.1.3.0 (Odoo 19) |
+| Versione | 19.0.1.3.2 (Odoo 19) |
 | Dipendenze | `mrp`, `sale_stock` |
 | Autore | Progresso Srl |
 
@@ -143,6 +143,7 @@ Un lancio per formato: **prima tutti i formati di produzione, poi i pallet**, pe
 | Tipo di formato | *Formato di produzione* (sacco, big bag) o *Formato pallet* | — |
 | Magazzino | WH | primo magazzino dell'azienda |
 | Unità del formato | es. Sacco 25kg, oppure Pallet 1500kg - 25kg x 60 | — |
+| Approvvigionamento | **Su ordine** (produce sempre la quantità ordinata) o **Da giacenza** (usa prima sacchi e pallet a stock) | Su ordine |
 | Ubicazione confezionato | `WH/Confezionato` | l'ubicazione chiamata "Confezionato" del magazzino |
 | Ubicazione componenti | `WH/Giacenza` | giacenza principale del magazzino |
 | Tipo operazione prelievo | Prelievo confezionato | il tipo interno con *Convalida automatica* |
@@ -163,9 +164,16 @@ Regole create nelle rotte (tutte con **Ubicazione di destinazione presa dalla re
 | Regola | Metodo di fornitura |
 |---|---|
 | Consegna (`WH/Confezionato` → Clienti) | Attiva un'altra regola |
-| Prelievo (formato → `WH/Confezionato`) | Preleva da giacenza, se non disponibile attiva un'altra regola |
-| Imballo (sacchi → pallet) | Preleva da giacenza, se non disponibile attiva un'altra regola |
+| Prelievo (formato → `WH/Confezionato`) | secondo *Approvvigionamento* |
+| Imballo (sacchi → pallet) | secondo *Approvvigionamento* |
 | Produzione | — |
+
+| Approvvigionamento | Metodo di Prelievo e Imballo | Effetto |
+|---|---|---|
+| **Su ordine** (predefinito, produzione Alimac in MTO) | Attiva un'altra regola | Ogni ordine produce **tutta** la quantità ordinata (2 pallet × 75 = 150 sacchi), anche se ci sono sacchi a stock. I sacchi avanzati si usano solo imballandoli a mano (MO per magazzino o Imballo manuale). |
+| **Da giacenza** | Preleva da giacenza, se non disponibile attiva un'altra regola | Usa prima sacchi e pallet a stock e produce solo la differenza (es. 30 sacchi a stock → MO di 120). |
+
+Per cambiare il metodo di una rotta già creata: aprire la rotta e modificare il *Metodo di fornitura* delle regole Prelievo e Imballo (il wizard non modifica rotte esistenti).
 
 Le rotte sono selezionabili sulla **riga dell'ordine di vendita**, non sul prodotto.
 
@@ -231,8 +239,14 @@ Sulla riga: prodotto variante *confezionato*, unità del formato (es. Pallet 150
 
 ### 5.2 Ordine di produzione
 
-- Il campo **Imballaggio** mostra cosa è stato ordinato (es. *2 Pallet 1500kg - 25kg x 60*); c'è anche nell'elenco degli MO.
-- Se compare l'**avviso giallo** ("l'ordine chiede … ma la produzione è in …"), manca la distinta del formato o non ha il tipo di operazione giusto (4.5). Va corretto prima di produrre.
+- Il campo **Imballaggio** mostra le righe d'ordine prodotte da questo MO, con quantità e unità ordinate (es. *2 Pallet 1500kg - 25kg x 60*, oppure *3 Pallet… + 3 Sacco 25kg* se Odoo ha unito più righe nello stesso MO); c'è anche nell'elenco degli MO.
+- L'**avviso giallo** compare quando una riga finisce in un MO di un altro formato (es. *2 Sacco 10kg … finisce in questa produzione in Sacco 20kg*): manca la distinta di quel formato o non ha il tipo di operazione del formato (4.5). Va corretto prima di produrre.
+
+Come il modulo decide quali righe appartengono a un MO:
+
+1. righe collegate dalla catena dei movimenti (regole *Attiva un'altra regola*);
+2. righe dello stesso ordine e prodotto la cui regola di produzione porta la merce nella stessa ubicazione dell'MO e sceglie la sua stessa distinta (è così che Odoo decide se unire le richieste);
+3. per righe con rotte senza regola di produzione, dall'unità (il pallet si produce nel suo sacco, il sacco in se stesso).
 - Si chiude l'MO dichiarando i sacchi realmente prodotti, anche più del previsto.
 
 ### 5.3 Pulsante Imballa
@@ -276,7 +290,7 @@ Pulsanti intelligenti:
 | Stesso prodotto in pallet e in sacchi nello stesso ordine | Odoo unisce le richieste in **un solo MO** (es. 123 sacchi), che mostra *2 Pallet… + 3 Sacco 25kg*. Imballa imballa i 120 del pallet, i 3 sacchi vanno al loro prelievo. Un solo WH/OUT. |
 | Due prodotti nello stesso Imballo | Ogni MO imballa il suo prodotto; l'altro passa in backorder e lo trova il suo MO. |
 | Formato ordinato senza distinta | Avviso sull'MO (4.5). |
-| Sacchi o pallet già a stock | Le regole *Preleva da giacenza, se non disponibile attiva un'altra regola* li usano prima di produrre. |
+| Sacchi o pallet già a stock | **Su ordine**: ignorati, l'MO produce tutto l'ordinato. **Da giacenza**: usati prima, l'MO produce la differenza. |
 | MO non completato | Il pulsante Imballa non è visibile. |
 
 Nota Odoo 19: le regole *Preleva da giacenza, se non disponibile attiva un'altra regola* non collegano i movimenti tra loro (MO → Imballo → Prelievo). Il modulo ritrova Imballo e Prelievo dal **riferimento comune** (l'ordine di vendita), dal prodotto e dall'ubicazione, quindi funziona con entrambi i metodi di fornitura.
@@ -332,7 +346,7 @@ Gli altri campi Studio (Codice Gamma, Qtà TON, Peso, Effettuata da…) non rigu
 | `stock.quant` | `alimac_count_qty` (N), `alimac_package_type_id`, `alimac_package_count` (memorizzati, sommabili) |
 | `stock.picking` | `alimac_production_id` (imballi creati per MO a magazzino), `alimac_material_move_ids` |
 | `stock.move` | `alimac_packing_picking_id`; override di `_action_done` per la convalida automatica |
-| `mrp.production` | pulsanti *Imballa* e *Imballi*; `alimac_sale_packaging_summary`, `alimac_sale_uom_id`, `alimac_sale_uom_qty`, `alimac_packaging_mismatch` |
+| `mrp.production` | pulsanti *Imballa* e *Imballi*; `alimac_sale_packaging_summary`, `alimac_sale_uom_id`, `alimac_sale_uom_qty`, `alimac_packaging_mismatch`, `alimac_packaging_mismatch_lines` |
 | `alimac.pallet.packing.wizard` | wizard Imballa (+ righe materiali) |
 | `alimac.packaging.format.wizard` | wizard Configura formato confezionato |
 | `hooks.py`, `migrations/` | migrazione Studio, creazione Consumo Imballi (idempotenti) |
@@ -352,7 +366,7 @@ Scelte implementative:
 odoo-bin -d <db> -u alimac_mrp_imballo_pallet --test-tags=/alimac_mrp_imballo_pallet --stop-after-init
 ```
 
-18 test, eseguiti su Odoo 19 Community.
+20 test, eseguiti su Odoo 19 Community.
 
 **Pulsante Imballa e campi** (`test_pallet_packing.py`):
 
@@ -377,3 +391,5 @@ odoo-bin -d <db> -u alimac_mrp_imballo_pallet --test-tags=/alimac_mrp_imballo_pa
 3. Ordine 3 sacchi: prelievo automatico dopo l'MO.
 4. Consumo Imballi creata all'installazione.
 5. Ordine misto pallet + sacchi dello stesso prodotto: MO unico, un solo WH/OUT.
+6. Pallet + Sacco 10kg senza distinta 10 kg: avviso solo sull'MO del 10 kg; creata la distinta, due MO corretti e nessun avviso.
+7. Approvvigionamento Su ordine: con sacchi a stock l'MO produce comunque tutta la quantità ordinata.

@@ -34,6 +34,10 @@ class MrpProduction(models.Model):
         help="Imballaggi ordinati, es. \"2 Pallet 1500kg - 20kg x 75\" oppure, se "
         "Odoo ha unito più righe nello stesso MO, \"2 Pallet ... + 3 Sacco 25kg\".",
     )
+    alimac_packaging_mismatch_lines = fields.Char(
+        string="Formati senza distinta",
+        compute="_compute_alimac_sale_packaging",
+    )
     alimac_packaging_mismatch = fields.Boolean(
         compute="_compute_alimac_sale_packaging",
         help="L'unità dell'MO non corrisponde al formato ordinato: manca la "
@@ -69,24 +73,30 @@ class MrpProduction(models.Model):
         return pickings
 
     def _alimac_get_sale_lines(self):
-        """Righe di vendita che hanno generato l'MO.
+        """Righe di vendita prodotte da questo MO.
 
-        Odoo unisce in un solo MO le richieste dello stesso prodotto, tipo
-        operazione e ordine (es. 2 pallet 25x60 + 3 sacchi 25 kg = 123 sacchi):
-        in quel caso le righe sono più di una.
+        - righe collegate dalla catena dei movimenti (regole "Attiva un'altra
+          regola");
+        - righe dello stesso ordine e prodotto la cui regola di produzione
+          porta la merce nell'ubicazione di questo MO e sceglie la sua stessa
+          distinta. Odoo unisce in un solo MO le richieste con stesso prodotto,
+          distinta, destinazione e ordine (es. 2 pallet 25x60 + 3 sacchi 25 kg =
+          123 sacchi); e quando un formato non ha la sua distinta ripiega su
+          quella di un altro formato: è il caso che fa scattare l'avviso.
         """
         self.ensure_one()
+        SaleLine = self.env["sale.order.line"]
+        lines = SaleLine
         moves = self.move_finished_ids.filtered(
             lambda m: m.product_id == self.product_id
         ).move_dest_ids
         seen = self.env["stock.move"]
         while moves:
-            if moves.sale_line_id:
-                return moves.sale_line_id
+            lines |= moves.sale_line_id
             seen |= moves
             moves = moves.move_dest_ids - seen
         if not self.reference_ids:
-            return self.env["sale.order.line"]
+            return lines
         candidates = self.env["stock.move"].search(
             [
                 ("reference_ids", "in", self.reference_ids.ids),
@@ -94,17 +104,47 @@ class MrpProduction(models.Model):
                 ("sale_line_id", "!=", False),
             ]
         ).sale_line_id
-        matching = candidates.filtered(self._alimac_is_produced_in_mo_uom)
-        return matching or candidates
+        for line in candidates - lines:
+            rule = self._alimac_get_line_production_rule(line)
+            if not rule:
+                # Rotta senza regola di produzione: si decide dall'unità.
+                if self._alimac_is_produced_in_mo_uom(line):
+                    lines |= line
+                continue
+            # La riga finisce in questo MO se la sua regola porta la merce
+            # dove la porta l'MO e sceglie la stessa distinta.
+            bom = rule._get_matching_bom(self.product_id, self.company_id, {})
+            if (
+                rule.location_dest_id == self.location_dest_id
+                and self.bom_id
+                and bom == self.bom_id
+            ):
+                lines |= line
+        return lines
+
+    def _alimac_get_line_production_rule(self, sale_line):
+        """Regola di produzione della rotta della riga (vuota se non c'è)."""
+        return sale_line.route_ids.rule_ids.filtered(
+            lambda r: r.action == "manufacture"
+            and r.company_id in (self.company_id, self.env["res.company"])
+        )[:1]
 
     def _alimac_is_produced_in_mo_uom(self, sale_line):
         """Un pallet si produce nel suo sacco; un sacco si produce in se stesso."""
         uom = sale_line.product_uom_id
         return self.product_uom_id in (uom | uom.relative_uom_id)
 
+    @staticmethod
+    def _alimac_format_lines(lines):
+        return " + ".join(
+            "%s %s" % ("%g" % line.product_uom_qty, line.product_uom_id.name)
+            for line in lines
+        )
+
     @api.depends(
         "product_qty",
         "product_uom_id",
+        "bom_id",
         "move_finished_ids.move_dest_ids.sale_line_id",
         "move_finished_ids.move_dest_ids.move_dest_ids",
         "reference_ids",
@@ -125,22 +165,19 @@ class MrpProduction(models.Model):
                 if sale_uom and production.product_uom_id
                 else 0.0
             )
-            if sale_uom:
-                summary = "%s %s" % (
-                    "%g" % round(production.alimac_sale_uom_qty, 3), sale_uom.name
+            production.alimac_sale_packaging_summary = (
+                production._alimac_format_lines(sale_lines) or False
+            )
+            wrong_lines = (
+                sale_lines.filtered(
+                    lambda line: not production._alimac_is_produced_in_mo_uom(line)
                 )
-            else:
-                summary = " + ".join(
-                    "%s %s" % ("%g" % line.product_uom_qty, line.product_uom_id.name)
-                    for line in sale_lines
-                )
-            production.alimac_sale_packaging_summary = summary or False
-            production.alimac_packaging_mismatch = bool(
-                sale_lines
-                and production.product_uom_id
-                and not all(
-                    production._alimac_is_produced_in_mo_uom(line) for line in sale_lines
-                )
+                if production.product_uom_id
+                else sale_lines.browse()
+            )
+            production.alimac_packaging_mismatch = bool(wrong_lines)
+            production.alimac_packaging_mismatch_lines = (
+                production._alimac_format_lines(wrong_lines) or False
             )
 
     def _compute_alimac_packing_picking_ids(self):

@@ -60,6 +60,20 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         compute="_compute_content_uom_id",
     )
     package_type_id = fields.Many2one(related="uom_id.package_type_id")
+    procure_method = fields.Selection(
+        [
+            ("make_to_order", "Su ordine: produce sempre la quantità ordinata"),
+            ("mts_else_mto", "Da giacenza: usa prima sacchi e pallet a stock"),
+        ],
+        string="Approvvigionamento",
+        required=True,
+        default="make_to_order",
+        help="Metodo delle regole Prelievo e Imballo della rotta.\n"
+        "Su ordine (\"Attiva un'altra regola\"): ogni ordine produce tutta la "
+        "quantità ordinata, la giacenza non viene considerata.\n"
+        "Da giacenza (\"Preleva da giacenza, se non disponibile attiva un'altra "
+        "regola\"): usa prima i sacchi/pallet a stock e produce solo la differenza.",
+    )
 
     parent_location_id = fields.Many2one(
         "stock.location",
@@ -420,14 +434,14 @@ class AlimacPackagingFormatWizard(models.TransientModel):
             ),
             self._rule_vals(
                 "Prelievo %s" % self.uom_id.name, "pull", location, confezionato,
-                self.prelievo_type_id, "mts_else_mto", 20,
+                self.prelievo_type_id, self.procure_method, 20,
             ),
         ]
         if self.format_type == FORMAT_PALLET:
             rules += [
                 self._rule_vals(
                     self.picking_type_name, "pull", self.sack_location_id, location,
-                    picking_type, "mts_else_mto", 30,
+                    picking_type, self.procure_method, 30,
                 ),
                 self._rule_vals(
                     "Produzione %s" % self.content_uom_id.name, "manufacture",

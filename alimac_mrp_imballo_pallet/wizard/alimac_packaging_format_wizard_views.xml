@@ -13,6 +13,7 @@
                         <field name="format_type" widget="radio"/>
                         <field name="warehouse_id" options="{'no_create': True}"/>
                         <field name="uom_id" options="{'no_create': True}"/>
+                        <field name="procure_method" widget="radio"/>
                         <field name="content_uom_id" invisible="format_type != 'pallet'"/>
                         <field name="package_type_id" invisible="format_type != 'pallet'"/>
                     </group>

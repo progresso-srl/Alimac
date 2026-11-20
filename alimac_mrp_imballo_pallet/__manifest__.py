@@ -5,7 +5,7 @@
     "summary": "Pulsante Imballa sull'ordine di produzione: crea i colli pallet, "
     "scarica i materiali di imballo, lascia l'eccedenza nell'ubicazione sacchi "
     "e convalida in automatico i prelievi intermedi",
-    "version": "19.0.1.3.0",
+    "version": "19.0.1.3.2",
     "description": """
 Imballo pallet da produzione (Alimac)
 =====================================

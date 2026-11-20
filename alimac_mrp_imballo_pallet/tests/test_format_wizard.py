@@ -240,6 +240,91 @@ class TestAlimacFormatWizard(TestMrpCommon):
         self.assertEqual(delivery.state, "assigned")
         self.assertAlmostEqual(sum(delivery.move_ids.mapped("product_uom_qty")), 3075)
 
+    def test_06_missing_bom_for_format_warning(self):
+        """Pallet 25x60 + Sacco 10kg senza distinta 10 kg: avviso solo sul 10 kg."""
+        kg = self.env.ref("uom.product_uom_kgm")
+        uom_sack_10 = self.env["uom.uom"].create(
+            {"name": "Sacco 10kg", "relative_factor": 10, "relative_uom_id": kg.id}
+        )
+        self.product.uom_ids = [Command.link(uom_sack_10.id)]
+        _route_sack, route_pallet, _loc, _ptype = self._configure()
+        _wizard, route_sack_10 = self._run_wizard("production", uom_sack_10)
+
+        def confirm_order():
+            order = self.env["sale.order"].create(
+                {
+                    "partner_id": self.partner.id,
+                    "warehouse_id": self.wh.id,
+                    "order_line": [
+                        Command.create({
+                            "product_id": self.product.id,
+                            "product_uom_qty": 2,
+                            "product_uom_id": self.uom_pallet.id,
+                            "route_ids": [Command.set(route_pallet.ids)],
+                        }),
+                        Command.create({
+                            "product_id": self.product.id,
+                            "product_uom_qty": 2,
+                            "product_uom_id": uom_sack_10.id,
+                            "route_ids": [Command.set(route_sack_10.ids)],
+                        }),
+                    ],
+                }
+            )
+            order.action_confirm()
+            return order.picking_ids.move_ids.reference_ids.mapped("move_ids").production_id | \
+                self.env["mrp.production"].search([("origin", "=", order.name)])
+
+        mos = confirm_order()
+        # Senza distinta 10 kg Odoo usa quella da 25 kg: l'MO del 10 kg esce in
+        # Sacco 25kg (0,8 sacchi) e mostra l'avviso; quello dei pallet no.
+        pallet_mo = mos.filtered(lambda m: "Pallet" in (m.alimac_sale_packaging_summary or ""))
+        sack_10_mo = mos - pallet_mo
+        self.assertEqual(len(pallet_mo), 1)
+        self.assertEqual(len(sack_10_mo), 1)
+        self.assertEqual(pallet_mo.alimac_sale_packaging_summary, "2 Pallet 1500kg - 25kg x 60")
+        self.assertFalse(pallet_mo.alimac_packaging_mismatch)
+        self.assertEqual(sack_10_mo.product_uom_id, self.uom_sack)
+        self.assertEqual(sack_10_mo.alimac_sale_packaging_summary, "2 Sacco 10kg")
+        self.assertTrue(sack_10_mo.alimac_packaging_mismatch)
+        self.assertEqual(sack_10_mo.alimac_packaging_mismatch_lines, "2 Sacco 10kg")
+
+        # Creata la distinta 10 kg: MO separati, nessun avviso.
+        sack_10_type = route_sack_10.rule_ids.filtered(lambda r: r.action == "manufacture").picking_type_id
+        self.env["mrp.bom"].create(
+            {
+                "product_tmpl_id": self.product.product_tmpl_id.id,
+                "product_id": self.product.id,
+                "product_qty": 1,
+                "product_uom_id": uom_sack_10.id,
+                "picking_type_id": sack_10_type.id,
+                "bom_line_ids": [Command.create(
+                    {"product_id": self.sfuso.id, "product_qty": 10, "product_uom_id": kg.id}
+                )],
+            }
+        )
+        mos = confirm_order()
+        self.assertEqual(len(mos), 2)
+        for mo in mos:
+            self.assertFalse(mo.alimac_packaging_mismatch, mo.alimac_sale_packaging_summary)
+        self.assertEqual(
+            sorted(mos.mapped("alimac_sale_packaging_summary")),
+            ["2 Pallet 1500kg - 25kg x 60", "2 Sacco 10kg"],
+        )
+
+    def test_07_mto_ignores_stock(self):
+        """Su ordine (default): con 30 sacchi a stock l'MO produce comunque tutti i 120."""
+        _route_sack, route_pallet, sack_location, _ptype = self._configure()
+        self.env["stock.quant"]._update_available_quantity(self.product, sack_location, 750)
+        self.assertEqual(
+            set(route_pallet.rule_ids.filtered(lambda r: r.action == "pull").mapped("procure_method")),
+            {"make_to_order"},
+        )
+        order = self._order(route_pallet, self.uom_pallet, 2)
+        mo = self._mo(order)
+        self.assertAlmostEqual(mo.product_qty, 120)
+        self.assertEqual(mo.alimac_sale_packaging_summary, "2 Pallet 1500kg - 25kg x 60")
+
     def test_04_install_creates_consumption_location(self):
         location = self.env["stock.location"]._alimac_get_consumption_location()
         self.assertTrue(location)
