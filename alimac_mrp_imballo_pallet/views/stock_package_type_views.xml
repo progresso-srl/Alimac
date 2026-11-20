@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="stock_package_type_form_alimac_pallet" model="ir.ui.view">
+        <field name="name">stock.package.type.form.alimac.pallet</field>
+        <field name="model">stock.package.type</field>
+        <field name="inherit_id" ref="stock.stock_package_type_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Materiali di imballo" name="alimac_materials">
+                    <field name="alimac_material_line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id" options="{'no_create': True}"/>
+                        </list>
+                    </field>
+                    <div class="text-muted">
+                        Quantità per singolo collo. Il pulsante Imballa le moltiplica per il numero di colli creati.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

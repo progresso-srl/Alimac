@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <!-- Report giacenze per ubicazione -->
+    <record id="view_stock_quant_tree_editable_alimac_pallet" model="ir.ui.view">
+        <field name="name">stock.quant.list.editable.alimac.pallet</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='package_id']" position="after">
+                <field name="alimac_package_type_id" optional="show" groups="stock.group_tracking_lot"/>
+                <field name="alimac_package_count" optional="show" sum="Colli" groups="stock.group_tracking_lot"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Rettifiche di inventario -->
+    <record id="view_stock_quant_tree_inventory_editable_alimac_pallet" model="ir.ui.view">
+        <field name="name">stock.quant.inventory.list.editable.alimac.pallet</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='package_id']" position="after">
+                <field name="alimac_package_type_id" optional="hide" groups="stock.group_tracking_lot"/>
+                <field name="alimac_package_count" optional="show" sum="Colli" groups="stock.group_tracking_lot"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="quant_search_view_alimac_pallet" model="ir.ui.view">
+        <field name="name">stock.quant.search.alimac.pallet</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='package']" position="after">
+                <filter string="Tipologia collo" name="alimac_package_type"
+                        context="{'group_by': 'alimac_package_type_id'}"
+                        groups="stock.group_tracking_lot"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

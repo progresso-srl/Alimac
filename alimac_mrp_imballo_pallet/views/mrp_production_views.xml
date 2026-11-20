@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="mrp_production_form_view_alimac_pallet" model="ir.ui.view">
+        <field name="name">mrp.production.form.alimac.pallet</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_alimac_open_pallet_packing" type="object" string="Imballa"
+                        class="oe_highlight" invisible="state != 'done'"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_alimac_view_packing_pickings"
+                        type="object" icon="fa-cubes" invisible="alimac_packing_picking_count == 0">
+                    <field name="alimac_packing_picking_count" widget="statinfo" string="Imballi"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

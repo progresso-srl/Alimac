@@ -1,0 +1,26 @@
+# Copyright 2026 Progresso Srl
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0)
+from odoo import api, fields, models
+
+
+class StockQuant(models.Model):
+    _inherit = "stock.quant"
+
+    alimac_package_type_id = fields.Many2one(
+        related="package_id.package_type_id",
+        store=True,
+        string="Tipologia collo",
+    )
+    alimac_package_count = fields.Integer(
+        string="N colli",
+        compute="_compute_alimac_package_count",
+        store=True,
+        aggregator="sum",
+        help="1 per ogni riga di giacenza dentro un collo. Corretto finché "
+        "un collo contiene un solo prodotto/lotto (caso Alimac).",
+    )
+
+    @api.depends("package_id")
+    def _compute_alimac_package_count(self):
+        for quant in self:
+            quant.alimac_package_count = 1 if quant.package_id else 0
