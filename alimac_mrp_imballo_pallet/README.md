@@ -1,6 +1,6 @@
 # Alimac – Imballo pallet da produzione
 
-Modulo: `alimac_mrp_imballo_pallet` · Odoo 19.0 · Dipendenze: `mrp`
+Modulo: `alimac_mrp_imballo_pallet` · Versione 19.0.1.1.0 · Dipendenze: `mrp`
 
 ## A cosa serve
 
@@ -15,7 +15,10 @@ Il modulo aggiunge il pulsante **Imballa** sull'ordine di produzione completato.
 
 I sacchi in più **non vengono toccati**: restano nell'ubicazione sacchi (es. `WH/Confezionato/Sacco20kg`) e sono disponibili per un imballo successivo.
 
-Aggiunge inoltre alle giacenze i campi **Tipologia collo** e **N colli**, per leggere quanti pallet ci sono in ogni ubicazione.
+Inoltre:
+
+- **Convalida automatica**: flag sul tipo operazione (es. *Prelievo confezionato*) che chiude da solo il trasferimento appena la merce è disponibile, così l'utente gestisce solo la consegna. Sostituisce la regola Studio *Validazione prelievo confezionato da produzione*.
+- **Giacenze**: colonna **N** (giacenza nell'unità di conteggio dell'ubicazione, es. numero di sacchi) e colonne **Tipologia collo** e **N colli**. La colonna N sostituisce il campo Studio `x_studio_n`.
 
 ## Flusso di riferimento
 
@@ -61,7 +64,24 @@ La stessa tipologia collo può essere usata da più confezioni (20 kg × 75 e 25
 ### 3. Confezioni sul prodotto
 Già presenti nella configurazione Alimac: le unità di imballaggio del prodotto (es. *Pallet 1500kg - 20kg x 75*, riferita a *Sacco 20kg* con fattore 75) devono avere la **Tipologia collo** valorizzata. Il pulsante propone solo le confezioni con tipologia collo.
 
-### 4. Permessi
+### 4. Convalida automatica dei prelievi
+*Tipo operazione Prelievo confezionato → sezione Imballo pallet (Alimac) → **Convalida automatica***
+
+Quando il trasferimento o la produzione che precede è completato e il prelievo è tutto disponibile (stato *Pronto*), il prelievo viene convalidato in automatico. I colli passano interi (la merce resta nel suo PACK anche a destinazione). Se la merce è disponibile solo in parte, il prelievo resta all'utente.
+
+Vale per entrambe le rotte:
+
+- **rotta sacchi**: chiusura MO → Prelievo convalidato → resta la Consegna;
+- **rotta pallet**: Imballa → Imballo convalidato → Prelievo convalidato → resta la Consegna.
+
+Non attivarla sull'Imballo (lo chiude il pulsante, con i colli) né sulla Consegna.
+
+### 5. Unità di conteggio delle ubicazioni
+*Inventario → Configurazione → Ubicazioni → (es.) WH/Confezionato/Sacco20kg → **Unità di conteggio***
+
+Es. *Sacco 20kg* per `Sacco20kg`, *Pallet 1500kg - 20kg x 75* per `Pallet 1500 - 20x75`. La colonna **N** delle giacenze mostra la quantità in quell'unità (ed è sommabile nei raggruppamenti).
+
+### 6. Permessi
 Il pulsante è visibile agli utenti **Produzione / Utente**. Per vedere le colonne dei colli nelle giacenze serve l'impostazione **Colli** attiva (*Inventario → Impostazioni*).
 
 ## Utilizzo
@@ -98,6 +118,24 @@ Sulle giacenze (report per ubicazione e rettifiche di inventario) sono disponibi
 
 Raggruppando per ubicazione e prodotto si legge, ad esempio, *Granulato Nero Assoluto – Pallet 1500kg – 2 colli*.
 
+## Migrazione dalle personalizzazioni Studio
+
+All'installazione (e all'aggiornamento dalla 19.0.1.0.0) il modulo:
+
+| Studio | Diventa | Cosa fa il modulo |
+|---|---|---|
+| Campo `x_studio_imballo_1` su Ubicazione ("Imballo") | **Unità di conteggio** (`alimac_count_uom_id`) | Copia il valore su ogni ubicazione (la prima unità, se ce n'erano più di una) |
+| Campo `x_studio_n` su Giacenza ("N") | Colonna **N** (`alimac_count_qty`, memorizzata e sommabile) | Calcolata dal modulo, nessun dato da copiare |
+| Regola di automazione *Validazione prelievo confezionato da produzione* | Flag **Convalida automatica** | Attiva il flag sui tipi operazione *Prelievo confezionato* e **archivia** la regola |
+
+Dopo aver verificato che tutto funzioni, da fare a mano:
+
+1. In Studio, togliere dalle viste e poi eliminare i campi `x_studio_n` (Giacenza) e `x_studio_imballo_1` (Ubicazione). Fino ad allora nel report giacenze vedrai due colonne "N".
+2. Eliminare la regola di automazione archiviata (*Impostazioni → Tecnico → Automazione → Regole di automazione*, filtro Archiviati).
+3. Riesportare le personalizzazioni Studio, se le versionate.
+
+Gli altri campi Studio (Codice Gamma, Qtà TON, Peso(ton), Effettuata da, ecc.) non riguardano questo modulo e restano in Studio.
+
 ## Limiti noti
 
 - **N colli** è corretto se ogni collo contiene **un solo prodotto e un solo lotto** (caso Alimac). Un collo misto verrebbe contato più volte.
@@ -112,10 +150,13 @@ Raggruppando per ubicazione e prodotto si legge, ad esempio, *Granulato Nero Ass
 |---|---|
 | Nuovo modello | `alimac.package.type.material`: materiali per collo, collegati a `stock.package.type` |
 | `stock.package.type` | `alimac_material_line_ids` |
-| `stock.picking.type` | `alimac_is_pallet_packing`, `alimac_material_location_id`, `alimac_consumption_location_id` |
+| `stock.picking.type` | `alimac_is_pallet_packing`, `alimac_material_location_id`, `alimac_consumption_location_id`, `alimac_auto_validate` |
+| `stock.location` | `alimac_count_uom_id` (unità di conteggio) |
 | `stock.picking` | `alimac_production_id` (imballi creati per MO a magazzino), `alimac_material_move_ids` |
 | `stock.move` | `alimac_packing_picking_id`: lega lo scarico materiali all'imballo |
-| `stock.quant` | `alimac_package_type_id` (related memorizzato), `alimac_package_count` (somma) |
+| `stock.quant` | `alimac_count_qty` (N), `alimac_package_type_id` (related memorizzato), `alimac_package_count` (somma) |
+| `stock.move` | override di `_action_done`: convalida automatica dei trasferimenti successivi |
+| `hooks.py`, `migrations/19.0.1.1.0` | migrazione dalle personalizzazioni Studio |
 | `mrp.production` | pulsante *Imballa*, pulsante intelligente *Imballi* |
 | Wizard | `alimac.pallet.packing.wizard` + righe `alimac.pallet.packing.wizard.material` |
 
@@ -140,6 +181,10 @@ Scenari coperti:
 4. Imballo parziale manuale: backorder e secondo imballo dal backorder.
 5. Pulsante bloccato su MO non completato.
 6. Sottoproduzione (140 sacchi su 150): colli 75 + 65, backorder per il resto.
+7. Rotta pallet: dopo Imballa il Prelievo con Convalida automatica si chiude da solo e i colli arrivano interi a destinazione.
+8. Rotta sacchi: chiusura MO → Prelievo convalidato in automatico.
+9. Colonna N calcolata con l'unità di conteggio dell'ubicazione.
+10. Migrazione dai campi/regola Studio.
 
 ## Autore
 

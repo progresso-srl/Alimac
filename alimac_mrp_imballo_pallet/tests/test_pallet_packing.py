@@ -270,6 +270,143 @@ class TestAlimacPalletPacking(TestMrpCommon):
         self.assertEqual(len(backorder), 1)
         self.assertAlmostEqual(backorder.move_ids.product_uom_qty, 200)
 
+    def _chain_imballo_prelievo(self, qty):
+        """Catena Imballo -> Prelievo come nella rotta pallet."""
+        self.loc_out = self.env["stock.location"].create(
+            {"name": "Confezionato uscita", "location_id": self.warehouse_1.lot_stock_id.id,
+             "usage": "internal"}
+        )
+        self.prelievo_type = self.env["stock.picking.type"].create(
+            {
+                "name": "Prelievo confezionato",
+                "code": "internal",
+                "sequence_code": "PCONF",
+                "warehouse_id": self.warehouse_1.id,
+                "default_location_src_id": self.loc_pallet.id,
+                "default_location_dest_id": self.loc_out.id,
+                "alimac_auto_validate": True,
+            }
+        )
+        prelievo = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.prelievo_type.id,
+                "location_id": self.loc_pallet.id,
+                "location_dest_id": self.loc_out.id,
+                "move_ids": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom": self.product.uom_id.id,
+                    "product_uom_qty": qty,
+                    "location_id": self.loc_pallet.id,
+                    "location_dest_id": self.loc_out.id,
+                    "procure_method": "make_to_order",
+                })],
+            }
+        )
+        imballo = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.packing_type.id,
+                "location_id": self.loc_sacks.id,
+                "location_dest_id": self.loc_pallet.id,
+                "move_ids": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom": self.product.uom_id.id,
+                    "product_uom_qty": qty,
+                    "location_id": self.loc_sacks.id,
+                    "location_dest_id": self.loc_pallet.id,
+                    "move_dest_ids": [Command.link(prelievo.move_ids.id)],
+                })],
+            }
+        )
+        imballo.action_confirm()
+        prelievo.action_confirm()
+        return imballo, prelievo
+
+    def test_07_auto_validate_prelievo_after_packing(self):
+        """Dopo Imballa, il prelievo con Convalida automatica si chiude da solo coi colli."""
+        imballo, prelievo = self._chain_imballo_prelievo(3000)
+        mo = self._produce(3000, 3200, move_dest=imballo.move_ids)
+        # L'MO chiuso non deve convalidare l'imballo (non ha il flag).
+        self.assertNotEqual(imballo.state, "done")
+        self._open_wizard(mo).action_pack()
+        self.assertEqual(imballo.state, "done")
+        self.assertEqual(prelievo.state, "done")
+        quants = self.env["stock.quant"].search(
+            [("location_id", "=", self.loc_out.id), ("product_id", "=", self.product.id)]
+        )
+        self.assertAlmostEqual(sum(quants.mapped("quantity")), 3000)
+        self.assertEqual(len(quants.package_id), 2, "I colli devono seguire la merce")
+        self.assertEqual(sum(quants.mapped("alimac_package_count")), 2)
+
+    def test_08_auto_validate_after_production(self):
+        """Rotta sacchi: MO -> Prelievo con Convalida automatica (ex regola Studio)."""
+        self.loc_out = self.env["stock.location"].create(
+            {"name": "Uscita", "location_id": self.warehouse_1.lot_stock_id.id, "usage": "internal"}
+        )
+        prelievo_type = self.env["stock.picking.type"].create(
+            {
+                "name": "Prelievo confezionato",
+                "code": "internal",
+                "sequence_code": "PCONF",
+                "warehouse_id": self.warehouse_1.id,
+                "default_location_src_id": self.loc_sacks.id,
+                "default_location_dest_id": self.loc_out.id,
+                "alimac_auto_validate": True,
+            }
+        )
+        prelievo = self.env["stock.picking"].create(
+            {
+                "picking_type_id": prelievo_type.id,
+                "location_id": self.loc_sacks.id,
+                "location_dest_id": self.loc_out.id,
+                "move_ids": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom": self.product.uom_id.id,
+                    "product_uom_qty": 600,
+                    "location_id": self.loc_sacks.id,
+                    "location_dest_id": self.loc_out.id,
+                })],
+            }
+        )
+        prelievo.action_confirm()
+        self._produce(600, 600, move_dest=prelievo.move_ids)
+        self.assertEqual(prelievo.state, "done")
+
+    def test_09_count_qty_by_location_unit(self):
+        """Colonna N: giacenza nell'unità di conteggio dell'ubicazione."""
+        self.loc_sacks.alimac_count_uom_id = self.uom_sack
+        self._produce(600, 600)
+        quants = self.env["stock.quant"].search(
+            [("location_id", "=", self.loc_sacks.id), ("product_id", "=", self.product.id)]
+        )
+        self.assertAlmostEqual(sum(quants.mapped("alimac_count_qty")), 30)
+
+    def test_10_studio_migration_hook(self):
+        """La migrazione attiva il flag sui Prelievo confezionato."""
+        from odoo.addons.alimac_mrp_imballo_pallet.hooks import post_init_hook
+
+        picking_type = self.env["stock.picking.type"].create(
+            {
+                "name": "Prelievo confezionato",
+                "code": "internal",
+                "sequence_code": "PC2",
+                "warehouse_id": self.warehouse_1.id,
+                "default_location_src_id": self.loc_pallet.id,
+                "default_location_dest_id": self.loc_sacks.id,
+            }
+        )
+        # Simula la tabella del campo Studio x_studio_imballo_1.
+        self.env.cr.execute(
+            "CREATE TABLE IF NOT EXISTS x_stock_location_uom_uom_rel "
+            "(stock_location_id integer, uom_uom_id integer)"
+        )
+        self.env.cr.execute(
+            "INSERT INTO x_stock_location_uom_uom_rel VALUES (%s, %s)",
+            (self.loc_sacks.id, self.uom_sack.id),
+        )
+        post_init_hook(self.env)
+        self.assertTrue(picking_type.alimac_auto_validate)
+        self.assertEqual(self.loc_sacks.alimac_count_uom_id, self.uom_sack)
+
     def test_05_requires_done_production(self):
         mo = self.env["mrp.production"].create(
             {"product_id": self.product.id, "product_qty": 1500, "picking_type_id": self.manu_type.id}

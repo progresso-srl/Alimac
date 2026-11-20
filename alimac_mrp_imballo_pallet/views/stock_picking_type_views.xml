@@ -10,6 +10,7 @@
             <xpath expr="//group[@name='second']" position="inside">
                 <group string="Imballo pallet (Alimac)" name="alimac_pallet_packing"
                        invisible="code != 'internal'">
+                    <field name="alimac_auto_validate"/>
                     <field name="alimac_is_pallet_packing"/>
                     <field name="alimac_material_location_id"
                            invisible="not alimac_is_pallet_packing"

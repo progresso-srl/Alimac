@@ -27,3 +27,10 @@ class StockPickingType(models.Model):
         help="Ubicazione virtuale in cui finiscono i materiali di imballo "
         "consumati.",
     )
+    alimac_auto_validate = fields.Boolean(
+        string="Convalida automatica",
+        help="Convalida in automatico i trasferimenti di questo tipo appena "
+        "il trasferimento o la produzione che li precede è completato e la "
+        "merce è tutta disponibile (es. Prelievo confezionato). Lascia "
+        "all'utente solo la consegna.",
+    )
