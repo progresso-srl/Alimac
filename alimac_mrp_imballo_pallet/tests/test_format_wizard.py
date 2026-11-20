@@ -1,6 +1,7 @@
 # Copyright 2026 Progresso Srl
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0)
 from odoo import Command
+from odoo.exceptions import UserError
 from odoo.tests import Form, tagged
 
 from odoo.addons.mrp.tests.common import TestMrpCommon
@@ -324,6 +325,81 @@ class TestAlimacFormatWizard(TestMrpCommon):
         mo = self._mo(order)
         self.assertAlmostEqual(mo.product_qty, 120)
         self.assertEqual(mo.alimac_sale_packaging_summary, "2 Pallet 1500kg - 25kg x 60")
+
+    def test_08_route_from_uom(self):
+        """Il wizard collega la rotta all'unità: la riga d'ordine la propone da sola."""
+        route_sack, route_pallet, _loc, _ptype = self._configure()
+        self.assertEqual(self.uom_pallet.alimac_route_ids, route_pallet)
+        self.assertEqual(self.uom_sack.alimac_route_ids, route_sack)
+        self.assertTrue(route_pallet.alimac_uom_selectable)
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": self.partner.id,
+                "warehouse_id": self.wh.id,
+                "order_line": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom_qty": 2,
+                    "product_uom_id": self.uom_pallet.id,
+                })],
+            }
+        )
+        line = order.order_line
+        self.assertEqual(line.route_ids, route_pallet)
+        # Cambio unità: cambia la rotta.
+        line.product_uom_id = self.uom_sack
+        self.assertEqual(line.route_ids, route_sack)
+        line.product_uom_id = self.uom_pallet
+        order.action_confirm()
+        mo = self._mo(order)
+        self.assertAlmostEqual(mo.product_qty, 120)
+        self.assertEqual(mo.state, "confirmed")
+
+    def test_09_fallback_bom_keeps_mo_draft(self):
+        """Formato senza distinta: MO in bozza; creata la distinta, il pulsante la applica."""
+        kg = self.env.ref("uom.product_uom_kgm")
+        uom_sack_10 = self.env["uom.uom"].create(
+            {"name": "Sacco 10kg", "relative_factor": 10, "relative_uom_id": kg.id}
+        )
+        self.product.uom_ids = [Command.link(uom_sack_10.id)]
+        self._configure()
+        _wizard, route_sack_10 = self._run_wizard("production", uom_sack_10)
+        order = self._order(route_sack_10, uom_sack_10, 3)
+        mo = self.env["mrp.production"].search(
+            [("product_id", "=", self.product.id), ("state", "=", "draft")]
+        )
+        self.assertEqual(len(mo), 1)
+        self.assertTrue(mo.alimac_is_format_fallback)
+        self.assertEqual(mo.product_uom_id, self.uom_sack)  # distinta da 25 kg
+        with self.assertRaises(UserError):
+            mo.action_alimac_apply_format_bom()
+
+        sack_10_type = mo.alimac_format_picking_type_id
+        bom_10 = self.env["mrp.bom"].create(
+            {
+                "product_tmpl_id": self.product.product_tmpl_id.id,
+                "product_id": self.product.id,
+                "product_qty": 1,
+                "product_uom_id": uom_sack_10.id,
+                "picking_type_id": sack_10_type.id,
+                "bom_line_ids": [Command.create(
+                    {"product_id": self.sfuso.id, "product_qty": 10, "product_uom_id": kg.id}
+                )],
+            }
+        )
+        location_dest = mo.location_dest_id
+        mo.action_alimac_apply_format_bom()
+        self.assertEqual(mo.bom_id, bom_10)
+        self.assertEqual(mo.product_uom_id, uom_sack_10)
+        self.assertAlmostEqual(mo.product_qty, 3)
+        self.assertEqual(mo.picking_type_id, sack_10_type)
+        self.assertEqual(mo.location_dest_id, location_dest)
+        self.assertFalse(mo.alimac_is_format_fallback)
+        self.assertAlmostEqual(sum(mo.move_raw_ids.mapped("product_uom_qty")), 30)
+        mo.action_confirm()
+        self.assertEqual(mo.state, "confirmed")
+        self._finish(mo, 3)
+        delivery = order.picking_ids.filtered(lambda p: p.picking_type_id == self.wh.out_type_id)
+        self.assertEqual(delivery.state, "assigned")
 
     def test_04_install_creates_consumption_location(self):
         location = self.env["stock.location"]._alimac_get_consumption_location()

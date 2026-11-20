@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="stock_location_route_form_view_alimac_uom" model="ir.ui.view">
+        <field name="name">stock.route.form.alimac.uom</field>
+        <field name="model">stock.route</field>
+        <field name="inherit_id" ref="stock.stock_location_route_form_view"/>
+        <field name="arch" type="xml">
+            <field name="package_type_selectable" position="after">
+                <field name="alimac_uom_selectable"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_uom_form_view_alimac_route" model="ir.ui.view">
+        <field name="name">uom.uom.form.alimac.route</field>
+        <field name="model">uom.uom</field>
+        <field name="inherit_id" ref="uom.product_uom_form_view"/>
+        <field name="arch" type="xml">
+            <div name="relative_factor" position="after">
+                <field name="alimac_route_ids" widget="many2many_tags"
+                       groups="stock.group_adv_location" options="{'no_create': True}"/>
+            </div>
+        </field>
+    </record>
+
+    <record id="product_uom_tree_view_alimac_route" model="ir.ui.view">
+        <field name="name">uom.uom.list.alimac.route</field>
+        <field name="model">uom.uom</field>
+        <field name="inherit_id" ref="uom.product_uom_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="alimac_route_ids" widget="many2many_tags" optional="show"
+                       groups="stock.group_adv_location"/>
+            </field>
+        </field>
+    </record>
+</odoo>

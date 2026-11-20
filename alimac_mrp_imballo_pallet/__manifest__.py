@@ -5,7 +5,7 @@
     "summary": "Pulsante Imballa sull'ordine di produzione: crea i colli pallet, "
     "scarica i materiali di imballo, lascia l'eccedenza nell'ubicazione sacchi "
     "e convalida in automatico i prelievi intermedi",
-    "version": "19.0.1.3.2",
+    "version": "19.0.1.4.0",
     "description": """
 Imballo pallet da produzione (Alimac)
 =====================================
@@ -18,6 +18,8 @@ Imballo pallet da produzione (Alimac)
 * Wizard **Configura formato confezionato**: crea ubicazione, tipo operazione
   e rotta di un formato sacco/big bag o pallet.
 * Installazione: ubicazione virtuale "Consumo Imballi".
+* Percorso collegato all'unità di misura: la riga d'ordine lo propone da sola.
+* MO lasciato in bozza se Odoo usa la distinta di un altro formato.
 * Giacenze: colonne N (unità di conteggio dell'ubicazione), Tipologia collo,
   N colli.
 
@@ -34,6 +36,7 @@ Documentazione completa nel file README.md del modulo.
         "views/stock_picking_views.xml",
         "views/stock_location_views.xml",
         "views/stock_quant_views.xml",
+        "views/stock_route_uom_views.xml",
         "wizard/alimac_pallet_packing_wizard_views.xml",
         "wizard/alimac_packaging_format_wizard_views.xml",
         "views/mrp_production_views.xml",

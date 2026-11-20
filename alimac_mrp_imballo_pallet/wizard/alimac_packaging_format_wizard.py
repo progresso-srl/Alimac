@@ -300,6 +300,9 @@ class AlimacPackagingFormatWizard(models.TransientModel):
                 items += Markup(
                     "<li class='text-warning'>La rotta esiste già: non viene modificata.</li>"
                 )
+            items += Markup(
+                "<li><b>Unità</b>: %s proporrà questa rotta sulle righe d'ordine</li>"
+            ) % wizard.uom_id.name
             wizard.preview = Markup("<ul class='mb-0'>%s</ul>") % items
 
     # ------------------------------------------------------------------
@@ -463,6 +466,7 @@ class AlimacPackagingFormatWizard(models.TransientModel):
                 "sequence": 1,
                 "product_selectable": False,
                 "sale_selectable": True,
+                "alimac_uom_selectable": True,
                 "rule_ids": [Command.create(vals) for vals in rules],
             }
         )
@@ -474,6 +478,10 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         picking_type = self._get_or_create_picking_type(location)
         route = self.existing_route_id or self._create_route(location, picking_type)
         self.prelievo_type_id.alimac_auto_validate = True
+        # La riga d'ordine con questa unità proporrà la rotta da sola.
+        if not route.alimac_uom_selectable:
+            route.alimac_uom_selectable = True
+        self.uom_id.alimac_route_ids = [Command.set(route.ids)]
         return {
             "type": "ir.actions.act_window",
             "name": route.display_name,

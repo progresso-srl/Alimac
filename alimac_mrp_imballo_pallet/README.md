@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Modulo | `alimac_mrp_imballo_pallet` |
-| Versione | 19.0.1.3.2 (Odoo 19) |
+| Versione | 19.0.1.4.0 (Odoo 19) |
 | Dipendenze | `mrp`, `sale_stock` |
 | Autore | Progresso Srl |
 
@@ -31,6 +31,8 @@ Il modulo:
 
 - **Pulsante Imballa** sull'ordine di produzione completato: divide i sacchi in colli secondo la confezione ordinata, crea i colli con la tipologia collo, scarica i materiali di imballo (pedana, film…) e convalida il trasferimento di imballo. I sacchi in più restano nell'ubicazione sacchi.
 - **Convalida automatica**: flag sul tipo operazione che chiude da solo i trasferimenti intermedi (es. *Prelievo confezionato*), così all'utente resta solo la consegna.
+- **Percorso dall'unità di misura**: sulla riga d'ordine il percorso si compila da solo in base all'unità scelta (Sacco 25kg, Pallet 1000kg - 25kg x 40…); nessuna scelta manuale.
+- **MO in bozza sul formato sbagliato**: se manca la distinta del formato e Odoo ripiega su quella di un altro, l'MO non viene confermato; creata la distinta, il pulsante *Usa la distinta del formato* la applica.
 - **Imballaggio sull'MO**: l'MO mostra cosa è stato ordinato (es. *2 Pallet 1500kg - 20kg x 75*) e avvisa se il formato ordinato non corrisponde all'unità di produzione.
 - **Giacenze leggibili**: colonne *N* (quantità nell'unità di conteggio dell'ubicazione, es. numero di sacchi), *Tipologia collo* e *N colli*.
 - **Wizard Configura formato confezionato**: crea in un colpo ubicazione, tipo operazione e rotta di un formato.
@@ -73,8 +75,9 @@ Esempio: ordine di 2 pallet da 75 sacchi, la macchina ne fa 160.
 | Ubicazione di ogni formato (con unità di conteggio) | Wizard | (4.4) |
 | Tipo operazione Produzione o Imballo di ogni formato | Wizard | (4.4) |
 | Rotta di ogni formato con le sue regole | Wizard | (4.4) |
-| Distinte per variante e formato | **A mano** | Produzione → Distinte base (4.5) |
-| Rotta sulla riga dell'ordine di vendita | Utente, a ogni ordine | Ordine di vendita (5.1) |
+| Distinte per variante e formato | **A mano** | Produzione → Distinte base (4.6) |
+| Collegamento unità → percorso | Wizard (o a mano sull'unità) | Unità di misura → *Percorsi di vendita* (4.5) |
+| Percorso sulla riga dell'ordine di vendita | Automatico dall'unità | Ordine di vendita (5.1) |
 
 ## 4. Configurazione, passo per passo
 
@@ -186,13 +189,34 @@ Se un elemento esiste già, il wizard lo **riusa senza modificarlo**:
 | Rotta | stesso **nome** |
 | Sacco di un pallet | ubicazione con l'unità di conteggio del sacco **e** tipo operazione di produzione che ci arriva |
 
-Unica modifica su record esistenti: imposta l'unità di conteggio su un'ubicazione riusata che non ce l'ha, e attiva la *Convalida automatica* sul tipo operazione di prelievo indicato.
+Modifiche su record esistenti: imposta l'unità di conteggio su un'ubicazione riusata che non ce l'ha; attiva la *Convalida automatica* sul tipo operazione di prelievo indicato; collega la rotta all'**unità del formato** (*Percorsi di vendita*) e spunta *Applicabile a → Unità di misura* sulla rotta.
 
 L'**anteprima** in fondo al wizard dice, prima di confermare, cosa verrà creato e cosa riusato. Attenzione ai nomi: un'ubicazione esistente chiamata `Sacco25kg` senza unità di conteggio **non** viene riconosciuta dal nome proposto *Sacco 25kg*. In quel caso impostare prima l'unità di conteggio sull'ubicazione, oppure correggere il nome nel wizard.
 
 Il wizard **non** crea unità, tipologie collo, prodotti, materiali né distinte.
 
-### 4.5 Distinte
+### 4.5 Percorso sull'unità di misura
+
+La rotta del formato si collega alla sua unità, così chi inserisce l'ordine sceglie solo prodotto, unità e quantità.
+
+| Dove | Campo |
+|---|---|
+| Rotta → *Applicabile a* | **Unità di misura** ✓ (insieme a *Righe ordine di vendita*) |
+| Unità di misura (es. Pallet 1000kg - 25kg x 40) | **Percorsi di vendita** = la rotta del formato |
+
+Il wizard formato fa entrambe le cose da solo. Per le rotte create a mano vanno impostate a mano.
+
+Sulla riga d'ordine:
+
+- scelta o cambiata l'unità, il campo *Percorsi* si compila con il percorso dell'unità;
+- resta visibile e modificabile per le eccezioni;
+- un'unità senza percorsi collegati lascia la riga com'è.
+
+Perché non la *Tipologia collo* nativa: Odoo somma le rotte della tipologia collo a quelle di riga, prodotto, categoria e magazzino senza mostrarle sulla riga, e servirebbe una tipologia collo per ogni formato (sacchi compresi). Qui il percorso è uno solo, visibile, e Pallet 1500kg resta un'unica tipologia con i suoi materiali.
+
+Non spuntare *Categorie prodotto* sulle rotte dei formati: se assegnate a una categoria, valgono per tutti i suoi prodotti e ordini.
+
+### 4.6 Distinte
 
 Una distinta per **ogni variante confezionato** e **ogni formato sacco o big bag** venduto. I pallet non hanno distinta: nascono dall'Imballo.
 
@@ -205,9 +229,11 @@ Una distinta per **ogni variante confezionato** e **ogni formato sacco o big bag
 | Componente | Sacco plastica del formato, 1 Unità (big bag: il big bag vuoto, se gestito) |
 | Scheda Varie → Tipo di operazione | *Produzione - <formato>* creato dal wizard |
 
-Perché il tipo di operazione è obbligatorio: su Odoo 19 la regola di produzione cerca prima una distinta con il **suo** tipo operazione. Se non la trova, prende una distinta qualsiasi del prodotto, e il tipo operazione della distinta ha la precedenza su quello della regola. Con la distinta di un altro formato l'MO esce sbagliato (es. ordine di 3 Sacco 25kg → MO di 3,75 Sacco 20kg). Il modulo lo segnala con un avviso sull'MO.
+Perché il tipo di operazione è obbligatorio: su Odoo 19 la regola di produzione cerca prima una distinta con il **suo** tipo operazione (o senza tipo operazione). Se non la trova, prende una distinta qualsiasi del prodotto, e il tipo operazione della distinta ha la precedenza su quello della regola. Con la distinta di un altro formato l'MO esce sbagliato (es. ordine di 3 Sacco 25kg → MO di 3,75 Sacco 20kg).
 
-### 4.6 Riepilogo dei flag sui tipi operazione
+Il modulo in quel caso **lascia l'MO in bozza** con un avviso rosso (5.2): si crea la distinta mancante e si preme *Usa la distinta del formato*.
+
+### 4.7 Riepilogo dei flag sui tipi operazione
 
 Sezione *Imballo pallet (Alimac)*, visibile sui trasferimenti interni:
 
@@ -218,11 +244,11 @@ Sezione *Imballo pallet (Alimac)*, visibile sui trasferimenti interni:
 | Ordini di consegna | ✗ | ✗ | — | — |
 | Produzione (uno per formato) | — | — | — | — |
 
-### 4.7 Unità di conteggio delle ubicazioni
+### 4.8 Unità di conteggio delle ubicazioni
 
 *Ubicazione → Unità di conteggio*: valorizzata dal wizard sulle ubicazioni dei formati. Per altre ubicazioni si imposta a mano. Determina la colonna **N** delle giacenze: es. *Sacco 20kg* su `Sacco20kg` mostra il numero di sacchi.
 
-### 4.8 Permessi
+### 4.9 Permessi
 
 | Funzione | Gruppo |
 |---|---|
@@ -235,12 +261,13 @@ Sezione *Imballo pallet (Alimac)*, visibile sui trasferimenti interni:
 
 ### 5.1 Ordine di vendita
 
-Sulla riga: prodotto variante *confezionato*, unità del formato (es. Pallet 1500kg - 25kg x 60) e **rotta del formato** (es. *Vendita confezionato Pallet 1500kg - 25kg x 60*). Alla conferma Odoo crea l'MO in sacchi e i trasferimenti della rotta.
+Sulla riga: prodotto variante *confezionato*, unità del formato (es. Pallet 1500kg - 25kg x 60) e quantità. Il **percorso** si compila da solo dall'unità (4.5). Alla conferma Odoo crea l'MO in sacchi e i trasferimenti della rotta.
 
 ### 5.2 Ordine di produzione
 
 - Il campo **Imballaggio** mostra le righe d'ordine prodotte da questo MO, con quantità e unità ordinate (es. *2 Pallet 1500kg - 25kg x 60*, oppure *3 Pallet… + 3 Sacco 25kg* se Odoo ha unito più righe nello stesso MO); c'è anche nell'elenco degli MO.
-- L'**avviso giallo** compare quando una riga finisce in un MO di un altro formato (es. *2 Sacco 10kg … finisce in questa produzione in Sacco 20kg*): manca la distinta di quel formato o non ha il tipo di operazione del formato (4.5). Va corretto prima di produrre.
+- **MO in bozza con avviso rosso**: Odoo non ha trovato la distinta del formato (nessuna distinta con il tipo operazione della rotta) e ha usato quella di un altro formato. L'MO **non viene confermato**. Si crea la distinta del formato (4.6), si torna sull'MO e si preme **Usa la distinta del formato**: il modulo sostituisce la distinta, converte la quantità a parità di peso (es. 100 Sacco 20kg → 80 Sacco 25kg), aggiorna tipo operazione e componenti e tiene l'ubicazione del formato. Poi si conferma.
+- L'**avviso giallo** compare quando una riga d'ordine finisce in un MO prodotto in un altro formato (es. *2 Sacco 10kg … finisce in questa produzione in Sacco 20kg*), anche per MO uniti da Odoo. Va corretto prima di produrre.
 
 Come il modulo decide quali righe appartengono a un MO:
 
@@ -289,7 +316,7 @@ Pulsanti intelligenti:
 | MO per magazzino | Crea un Imballo con i soli colli completi; i sacchi restanti rimangono in ubicazione. |
 | Stesso prodotto in pallet e in sacchi nello stesso ordine | Odoo unisce le richieste in **un solo MO** (es. 123 sacchi), che mostra *2 Pallet… + 3 Sacco 25kg*. Imballa imballa i 120 del pallet, i 3 sacchi vanno al loro prelievo. Un solo WH/OUT. |
 | Due prodotti nello stesso Imballo | Ogni MO imballa il suo prodotto; l'altro passa in backorder e lo trova il suo MO. |
-| Formato ordinato senza distinta | Avviso sull'MO (4.5). |
+| Formato ordinato senza distinta | MO in **bozza** con avviso; dopo aver creato la distinta, *Usa la distinta del formato* e conferma (5.2). |
 | Sacchi o pallet già a stock | **Su ordine**: ignorati, l'MO produce tutto l'ordinato. **Da giacenza**: usati prima, l'MO produce la differenza. |
 | MO non completato | Il pulsante Imballa non è visibile. |
 
@@ -344,9 +371,13 @@ Gli altri campi Studio (Codice Gamma, Qtà TON, Peso, Effettuata da…) non rigu
 | `stock.picking.type` | `alimac_is_pallet_packing`, `alimac_material_location_id`, `alimac_consumption_location_id`, `alimac_auto_validate` |
 | `stock.location` | `alimac_count_uom_id`; `_alimac_get_consumption_location()` |
 | `stock.quant` | `alimac_count_qty` (N), `alimac_package_type_id`, `alimac_package_count` (memorizzati, sommabili) |
+| `stock.route` | `alimac_uom_selectable` (*Applicabile a → Unità di misura*) |
+| `uom.uom` | `alimac_route_ids` (*Percorsi di vendita*) |
+| `sale.order.line` | `route_ids` calcolato dall'unità (memorizzato, modificabile) |
+| `stock.rule` | `_prepare_mo_vals` salva il tipo operazione del formato; `_should_auto_confirm_procurement_mo` lascia in bozza l'MO con distinta di un altro formato |
 | `stock.picking` | `alimac_production_id` (imballi creati per MO a magazzino), `alimac_material_move_ids` |
 | `stock.move` | `alimac_packing_picking_id`; override di `_action_done` per la convalida automatica |
-| `mrp.production` | pulsanti *Imballa* e *Imballi*; `alimac_sale_packaging_summary`, `alimac_sale_uom_id`, `alimac_sale_uom_qty`, `alimac_packaging_mismatch`, `alimac_packaging_mismatch_lines` |
+| `mrp.production` | pulsanti *Imballa*, *Imballi*, *Usa la distinta del formato*; `alimac_format_picking_type_id`, `alimac_is_format_fallback`, `alimac_sale_packaging_summary`, `alimac_sale_uom_id`, `alimac_sale_uom_qty`, `alimac_packaging_mismatch`, `alimac_packaging_mismatch_lines` |
 | `alimac.pallet.packing.wizard` | wizard Imballa (+ righe materiali) |
 | `alimac.packaging.format.wizard` | wizard Configura formato confezionato |
 | `hooks.py`, `migrations/` | migrazione Studio, creazione Consumo Imballi (idempotenti) |
@@ -366,7 +397,7 @@ Scelte implementative:
 odoo-bin -d <db> -u alimac_mrp_imballo_pallet --test-tags=/alimac_mrp_imballo_pallet --stop-after-init
 ```
 
-20 test, eseguiti su Odoo 19 Community.
+22 test, eseguiti su Odoo 19 Community.
 
 **Pulsante Imballa e campi** (`test_pallet_packing.py`):
 
@@ -393,3 +424,5 @@ odoo-bin -d <db> -u alimac_mrp_imballo_pallet --test-tags=/alimac_mrp_imballo_pa
 5. Ordine misto pallet + sacchi dello stesso prodotto: MO unico, un solo WH/OUT.
 6. Pallet + Sacco 10kg senza distinta 10 kg: avviso solo sull'MO del 10 kg; creata la distinta, due MO corretti e nessun avviso.
 7. Approvvigionamento Su ordine: con sacchi a stock l'MO produce comunque tutta la quantità ordinata.
+8. Percorso dall'unità: la riga d'ordine senza percorso lo prende dall'unità e lo cambia se cambia l'unità.
+9. Formato senza distinta: MO in bozza; senza distinta il pulsante dà errore; creata la distinta, il pulsante la applica (unità, quantità a parità di peso, tipo operazione, componenti) e il flusso arriva alla consegna.

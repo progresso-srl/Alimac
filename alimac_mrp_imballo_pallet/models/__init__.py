@@ -6,3 +6,7 @@ from . import stock_move
 from . import stock_location
 from . import stock_quant
 from . import mrp_production
+from . import stock_rule
+from . import stock_route
+from . import uom_uom
+from . import sale_order_line

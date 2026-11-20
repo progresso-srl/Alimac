@@ -1,6 +1,7 @@
 # Copyright 2026 Progresso Srl
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0)
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class MrpProduction(models.Model):
@@ -33,6 +34,20 @@ class MrpProduction(models.Model):
         compute="_compute_alimac_sale_packaging",
         help="Imballaggi ordinati, es. \"2 Pallet 1500kg - 20kg x 75\" oppure, se "
         "Odoo ha unito più righe nello stesso MO, \"2 Pallet ... + 3 Sacco 25kg\".",
+    )
+    alimac_format_picking_type_id = fields.Many2one(
+        "stock.picking.type",
+        string="Tipo operazione del formato",
+        readonly=True,
+        copy=False,
+        help="Tipo operazione della regola di produzione che ha creato l'MO, "
+        "cioè quello del formato ordinato (es. Produzione - Sacco 25kg).",
+    )
+    alimac_is_format_fallback = fields.Boolean(
+        string="Distinta di un altro formato",
+        compute="_compute_alimac_is_format_fallback",
+        help="Odoo non ha trovato la distinta del formato e ha usato quella "
+        "di un altro: l'MO resta in bozza.",
     )
     alimac_packaging_mismatch_lines = fields.Char(
         string="Formati senza distinta",
@@ -179,6 +194,85 @@ class MrpProduction(models.Model):
             production.alimac_packaging_mismatch_lines = (
                 production._alimac_format_lines(wrong_lines) or False
             )
+
+    @api.depends("bom_id", "bom_id.picking_type_id", "alimac_format_picking_type_id")
+    def _compute_alimac_is_format_fallback(self):
+        for production in self:
+            expected = production.alimac_format_picking_type_id
+            bom_type = production.bom_id.picking_type_id
+            production.alimac_is_format_fallback = bool(
+                expected and bom_type and bom_type != expected
+            )
+
+    def _alimac_find_format_bom(self):
+        """Distinta del formato richiesto: stesso tipo operazione della regola."""
+        self.ensure_one()
+        return self.env["mrp.bom"].search(
+            [
+                "|",
+                ("product_id", "=", self.product_id.id),
+                "&",
+                ("product_id", "=", False),
+                ("product_tmpl_id", "=", self.product_id.product_tmpl_id.id),
+                ("picking_type_id", "=", self.alimac_format_picking_type_id.id),
+                ("type", "=", "normal"),
+                ("company_id", "in", (self.company_id.id, False)),
+            ],
+            order="sequence, product_id, id",
+            limit=1,
+        )
+
+    def action_alimac_apply_format_bom(self):
+        """Sostituisce la distinta dell'MO in bozza con quella del formato.
+
+        La quantità resta la stessa in peso (es. 100 Sacco 20kg = 2.000 kg ->
+        80 Sacco 25kg); tipo operazione e ubicazioni seguono la nuova distinta.
+        """
+        for production in self:
+            if production.state != "draft":
+                raise UserError(
+                    self.env._("Si può cambiare distinta solo con l'MO in bozza.")
+                )
+            expected = production.alimac_format_picking_type_id
+            if not expected:
+                raise UserError(
+                    self.env._("L'MO non è stato creato da una rotta di formato.")
+                )
+            bom = production._alimac_find_format_bom()
+            if not bom:
+                raise UserError(
+                    self.env._(
+                        "Non esiste ancora una distinta per %(product)s con tipo "
+                        "operazione %(type)s: creala e riprova.",
+                        product=production.product_id.display_name,
+                        type=expected.display_name,
+                    )
+                )
+            base_uom = production.product_id.uom_id
+            qty_base = production.product_uom_id._compute_quantity(
+                production.product_qty, base_uom, round=False
+            )
+            location_dest = production.location_dest_id
+            production.write(
+                {"bom_id": bom.id, "picking_type_id": bom.picking_type_id.id}
+            )
+            production.write(
+                {
+                    "product_uom_id": bom.product_uom_id.id,
+                    "product_qty": base_uom._compute_quantity(
+                        qty_base, bom.product_uom_id, round=False
+                    ),
+                    "location_dest_id": location_dest.id,
+                }
+            )
+            production.message_post(
+                body=self.env._(
+                    "Distinta sostituita con %(bom)s (formato %(type)s).",
+                    bom=bom.display_name,
+                    type=expected.display_name,
+                )
+            )
+        return True
 
     def _compute_alimac_packing_picking_ids(self):
         Picking = self.env["stock.picking"]
