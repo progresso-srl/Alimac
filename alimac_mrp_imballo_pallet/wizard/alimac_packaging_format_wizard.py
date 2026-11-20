@@ -31,16 +31,24 @@ class AlimacPackagingFormatWizard(models.TransientModel):
     format_type = fields.Selection(
         [
             (FORMAT_PRODUCTION, "Formato di produzione (sacco, big bag)"),
-            (FORMAT_PALLET, "Formato pallet (imballo di sacchi)"),
+            (FORMAT_PALLET, "Formato pallet (pallet di sacchi)"),
         ],
         string="Tipo di formato",
         required=True,
         default=FORMAT_PRODUCTION,
+        help="Formato di produzione: ciò che esce direttamente dalla macchina "
+        "(Sacco 10/20/25 kg, Big Bag). Crea l'ubicazione del formato, il tipo "
+        "operazione di produzione e la rotta Produzione -> Prelievo -> Consegna.\n"
+        "Formato pallet: un collo fatto di sacchi già prodotti (es. Pallet "
+        "1000kg - 25kg x 40). Crea l'ubicazione dei pallet, il tipo operazione "
+        "Imballo e la rotta Produzione sacchi -> Imballo -> Prelievo -> Consegna. "
+        "Il sacco del pallet deve essere già configurato come formato di produzione.",
     )
     warehouse_id = fields.Many2one(
         "stock.warehouse",
         string="Magazzino",
         required=True,
+        help="Magazzino in cui creare ubicazione, tipo operazione e rotta.",
         default=lambda self: self.env["stock.warehouse"].search(
             [("company_id", "=", self.env.company.id)], limit=1
         ),
@@ -50,16 +58,24 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         "uom.uom",
         string="Unità del formato",
         required=True,
-        help="Produzione: es. Sacco 25kg, Big Bag 1500kg.\n"
-        "Pallet: es. Pallet 1500kg - 25kg x 60 (riferita al sacco, con "
-        "tipologia collo).",
+        help="L'unità di vendita del formato, la stessa che si sceglie sulla "
+        "riga d'ordine.\n"
+        "Formato di produzione: es. Sacco 25kg, Big Bag 1500kg.\n"
+        "Formato pallet: es. Pallet 1000kg - 25kg x 40, riferita al suo sacco "
+        "e con la tipologia collo.",
     )
     content_uom_id = fields.Many2one(
         "uom.uom",
         string="Sacco del pallet",
         compute="_compute_content_uom_id",
+        help="Unità a cui è riferito il pallet (es. Sacco 25kg): sono i sacchi "
+        "che la produzione fa e che l'Imballo mette sul pallet.",
     )
-    package_type_id = fields.Many2one(related="uom_id.package_type_id")
+    package_type_id = fields.Many2one(
+        related="uom_id.package_type_id",
+        help="Tipologia collo dell'unità pallet: definisce i materiali di "
+        "imballo (pedana, film) scaricati per ogni pallet.",
+    )
     procure_method = fields.Selection(
         [
             ("make_to_order", "Su ordine: produce sempre la quantità ordinata"),
@@ -105,6 +121,9 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         store=True,
         readonly=False,
         precompute=True,
+        help="Trasferimento che porta la merce dall'ubicazione del formato a "
+        "quella confezionato, dove parte la consegna. Si convalida da solo "
+        "(Convalida automatica). Normalmente: Prelievo confezionato.",
     )
     delivery_type_id = fields.Many2one(
         "stock.picking.type",
@@ -114,6 +133,9 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         store=True,
         readonly=False,
         precompute=True,
+        help="Consegna al cliente. Usare lo stesso tipo per tutti i formati: "
+        "così righe di formati diversi dello stesso ordine finiscono in un "
+        "solo WH/OUT (un solo DDT).",
     )
     material_location_id = fields.Many2one(
         "stock.location",
@@ -123,6 +145,8 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         store=True,
         readonly=False,
         precompute=True,
+        help="Da dove il pulsante Imballa scarica pedane, film e gli altri "
+        "materiali del pallet (es. WH/Giacenza).",
     )
     consumption_location_id = fields.Many2one(
         "stock.location",
@@ -132,23 +156,36 @@ class AlimacPackagingFormatWizard(models.TransientModel):
         store=True,
         readonly=False,
         precompute=True,
+        help="Ubicazione virtuale dove finiscono i materiali di imballo "
+        "consumati: escono dalla giacenza. Normalmente: Consumo Imballi.",
     )
 
     location_name = fields.Char(
         string="Nome ubicazione", compute="_compute_names", store=True, readonly=False,
-        precompute=True
+        precompute=True,
+        help="Nome dell'ubicazione del formato, sotto l'ubicazione confezionato. "
+        "Se esiste già un'ubicazione con questa unità di conteggio, viene riusata "
+        "e il nome è ignorato.",
     )
     picking_type_name = fields.Char(
         string="Nome tipo operazione", compute="_compute_names", store=True, readonly=False,
-        precompute=True
+        precompute=True,
+        help="Nome del tipo operazione di produzione (formato di produzione) o "
+        "di imballo (formato pallet). Va indicato sulle distinte del formato, "
+        "scheda Varie.",
     )
     sequence_code = fields.Char(
         string="Prefisso sequenza", compute="_compute_names", store=True, readonly=False,
-        precompute=True
+        precompute=True,
+        help="Prefisso dei documenti del tipo operazione (MO o Imballi), per "
+        "riconoscerli a colpo d'occhio.",
     )
     route_name = fields.Char(
         string="Nome rotta", compute="_compute_names", store=True, readonly=False,
-        precompute=True
+        precompute=True,
+        help="Nome della rotta. Se esiste già una rotta con questo nome esatto "
+        "viene riusata senza modifiche. La rotta viene collegata all'unità del "
+        "formato: sulla riga d'ordine si compila da sola.",
     )
 
     existing_location_id = fields.Many2one("stock.location", compute="_compute_existing")
@@ -160,7 +197,12 @@ class AlimacPackagingFormatWizard(models.TransientModel):
     sack_production_type_id = fields.Many2one(
         "stock.picking.type", compute="_compute_existing"
     )
-    preview = fields.Html(string="Anteprima", compute="_compute_preview", sanitize=False)
+    preview = fields.Html(
+        string="Anteprima",
+        compute="_compute_preview",
+        sanitize=False,
+        help="Cosa verrà creato e cosa riusato. Controllare prima di confermare.",
+    )
 
     # ------------------------------------------------------------------
     # Compute

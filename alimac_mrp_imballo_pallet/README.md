@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Modulo | `alimac_mrp_imballo_pallet` |
-| Versione | 19.0.1.4.0 (Odoo 19) |
+| Versione | 19.0.1.4.1 (Odoo 19) |
 | Dipendenze | `mrp`, `sale_stock` |
 | Autore | Progresso Srl |
 
@@ -140,6 +140,13 @@ Il pulsante Imballa moltiplica queste quantità per il numero di colli creati.
 *Inventario → Configurazione → Gestione magazzino → Configura formato confezionato* (Inventario / Amministratore).
 
 Un lancio per formato: **prima tutti i formati di produzione, poi i pallet**, perché un pallet richiede il suo sacco già configurato.
+
+Il wizard spiega in testa la differenza tra i due tipi di formato e ogni campo ha il suo aiuto (il "?" accanto all'etichetta).
+
+| Tipo di formato | Quando usarlo | Percorso creato |
+|---|---|---|
+| Formato di produzione | la merce esce direttamente dalla produzione: Sacco 10/20/25 kg, Big Bag | Produzione → Prelievo → Consegna |
+| Formato pallet | un pallet fatto di sacchi già prodotti: Pallet 1000kg - 25kg x 40… | Produzione sacchi → Imballo (pulsante Imballa) → Prelievo → Consegna |
 
 | Campo | Cosa mettere | Proposto |
 |---|---|---|

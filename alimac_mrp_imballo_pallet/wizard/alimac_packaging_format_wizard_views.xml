@@ -8,6 +8,22 @@
         <field name="arch" type="xml">
             <form string="Configura formato confezionato">
                 <field name="company_id" invisible="1"/>
+                <div class="alert alert-info" role="alert">
+                    <p class="mb-1">
+                        Configura in un colpo un formato confezionato: ubicazione, tipo operazione e rotta
+                        di vendita, già collegata all'unità. Un lancio per formato:
+                        <b>prima i sacchi e i big bag, poi i pallet</b>.
+                    </p>
+                    <p class="mb-0" invisible="format_type != 'production'">
+                        <b>Formato di produzione</b>: la merce esce direttamente dalla produzione
+                        (es. Sacco 25kg). Percorso: Produzione → Prelievo → Consegna.
+                    </p>
+                    <p class="mb-0" invisible="format_type != 'pallet'">
+                        <b>Formato pallet</b>: un pallet fatto di sacchi già prodotti
+                        (es. Pallet 1000kg - 25kg x 40). Percorso: Produzione sacchi → Imballo
+                        (pulsante Imballa) → Prelievo → Consegna.
+                    </p>
+                </div>
                 <group>
                     <group string="Formato">
                         <field name="format_type" widget="radio"/>
@@ -40,6 +56,11 @@
                 </group>
                 <separator string="Cosa verrà fatto"/>
                 <field name="preview" nolabel="1"/>
+                <div class="text-muted small">
+                    Dopo la conferma restano da fare a mano: la distinta del formato (con il tipo
+                    operazione di produzione indicato sopra) e, per i pallet, i materiali di imballo
+                    sulla tipologia collo.
+                </div>
                 <footer>
                     <button name="action_configure" type="object" string="Configura"
                             class="btn-primary" data-hotkey="q"/>
