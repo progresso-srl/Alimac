@@ -33,13 +33,38 @@ class StockMove(models.Model):
         Sostituisce la regola Studio "Validazione prelievo confezionato da
         produzione": vale sia dopo la chiusura dell'MO (movimenti finiti) sia
         dopo un trasferimento (es. Imballo -> Prelievo confezionato).
+
+        I trasferimenti successivi si trovano dalla catena dei movimenti
+        (regole "Attiva altra regola") oppure, per le regole "Preleva da
+        giacenza, se non disponibile attiva un'altra regola" che su Odoo 19 non
+        collegano i movimenti, dal riferimento comune (es. l'ordine di vendita)
+        e dall'ubicazione di arrivo della merce.
         """
-        pickings = self.move_dest_ids.picking_id.filtered(
+        if not self:
+            return
+        Picking = self.env["stock.picking"]
+        pickings = self.move_dest_ids.picking_id
+        references = self.reference_ids | self.production_id.reference_ids
+        if references:
+            pickings |= Picking.search(
+                [
+                    ("reference_ids", "in", references.ids),
+                    ("picking_type_id.alimac_auto_validate", "=", True),
+                    ("state", "in", ("confirmed", "waiting", "assigned")),
+                    ("move_ids.product_id", "in", self.product_id.ids),
+                    ("location_id", "child_of", self.location_dest_id.ids),
+                ]
+            )
+        pickings = pickings.filtered(
             lambda p: p.picking_type_id.alimac_auto_validate
-            and p.state == "assigned"
+            and p.state in ("confirmed", "waiting", "assigned")
         )
         for picking in pickings:
             picking = picking.with_context(clean_context(self.env.context))
+            if picking.state != "assigned":
+                picking.action_assign()
+            if picking.state != "assigned":
+                continue
             # Colli interi: la merce resta nel suo collo anche a destinazione.
             picking._check_entire_pack()
             picking.move_ids.picked = True

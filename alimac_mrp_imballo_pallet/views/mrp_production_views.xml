@@ -12,11 +12,34 @@
                         class="oe_highlight" invisible="state != 'done'"
                         groups="mrp.group_mrp_user"/>
             </xpath>
+            <xpath expr="//sheet" position="before">
+                <field name="alimac_packaging_mismatch" invisible="1"/>
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="not alimac_packaging_mismatch or state in ('done', 'cancel')">
+                    L'ordine di vendita chiede <field name="alimac_sale_packaging_summary" class="fw-bold" readonly="1"/>,
+                    ma la produzione è in <field name="product_uom_id" class="fw-bold" readonly="1"/>:
+                    manca la distinta per questo formato (o non ha il tipo di operazione corretto).
+                </div>
+            </xpath>
+            <xpath expr="//div[@name='bom_div']" position="after">
+                <field name="alimac_sale_packaging_summary" invisible="not alimac_sale_packaging_summary"/>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" name="action_alimac_view_packing_pickings"
                         type="object" icon="fa-cubes" invisible="alimac_packing_picking_count == 0">
                     <field name="alimac_packing_picking_count" widget="statinfo" string="Imballi"/>
                 </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_production_tree_view_alimac_pallet" model="ir.ui.view">
+        <field name="name">mrp.production.list.alimac.pallet</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_qty']" position="after">
+                <field name="alimac_sale_packaging_summary" optional="show"/>
             </xpath>
         </field>
     </record>

@@ -407,6 +407,139 @@ class TestAlimacPalletPacking(TestMrpCommon):
         self.assertTrue(picking_type.alimac_auto_validate)
         self.assertEqual(self.loc_sacks.alimac_count_uom_id, self.uom_sack)
 
+    def test_11_two_products_same_packing_picking(self):
+        """Due prodotti nello stesso Imballo (stesso ordine): ognuno con il suo MO e il suo Imballa."""
+        product_2 = self.env["product.product"].create(
+            {
+                "name": "Granulato Bianco confezionato",
+                "is_storable": True,
+                "uom_id": self.product.uom_id.id,
+                "uom_ids": [Command.set([self.uom_sack.id, self.uom_pallet.id])],
+            }
+        )
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.packing_type.id,
+                "location_id": self.loc_sacks.id,
+                "location_dest_id": self.loc_pallet.id,
+                "move_ids": [
+                    Command.create({
+                        "product_id": product.id,
+                        "product_uom": product.uom_id.id,
+                        "product_uom_qty": 1500,
+                        "location_id": self.loc_sacks.id,
+                        "location_dest_id": self.loc_pallet.id,
+                    })
+                    for product in (self.product, product_2)
+                ],
+            }
+        )
+        picking.action_confirm()
+        move_1 = picking.move_ids.filtered(lambda m: m.product_id == self.product)
+        move_2 = picking.move_ids - move_1
+        mo_1 = self._produce(1500, 1500, move_dest=move_1)
+        self.product, original = product_2, self.product
+        mo_2 = self._produce(1500, 1500, move_dest=move_2)
+        self.product = original
+
+        self._open_wizard(mo_1).action_pack()
+        self.assertEqual(picking.state, "done")
+        self.assertEqual(picking.move_ids.product_id, self.product)
+        backorder = self.env["stock.picking"].search([("backorder_id", "=", picking.id)])
+        self.assertEqual(backorder.move_ids.product_id, product_2)
+
+        wizard = self._open_wizard(mo_2)
+        self.assertEqual(wizard.picking_id, backorder)
+        wizard.action_pack()
+        self.assertEqual(backorder.state, "done")
+        quants = self.env["stock.quant"].search(
+            [("location_id", "=", self.loc_pallet.id), ("product_id", "in", (self.product | product_2).ids)]
+        )
+        self.assertEqual(len(quants.package_id), 2)
+
+    def _sale_line(self, uom, qty):
+        partner = self.env["res.partner"].create({"name": "Cliente test"})
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "order_line": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom_qty": qty,
+                    "product_uom_id": uom.id,
+                })],
+            }
+        )
+        return order.order_line
+
+    def test_12_mo_shows_ordered_packaging(self):
+        """L'MO mostra l'imballaggio ordinato: 150 Sacco 20kg = 2 Pallet."""
+        sale_line = self._sale_line(self.uom_pallet, 2)
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.packing_type.id,
+                "location_id": self.loc_sacks.id,
+                "location_dest_id": self.loc_pallet.id,
+                "move_ids": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom": self.product.uom_id.id,
+                    "product_uom_qty": 3000,
+                    "location_id": self.loc_sacks.id,
+                    "location_dest_id": self.loc_pallet.id,
+                    "sale_line_id": sale_line.id,
+                })],
+            }
+        )
+        picking.action_confirm()
+        mo = self.env["mrp.production"].create(
+            {
+                "product_id": self.product.id,
+                "product_qty": 150,
+                "product_uom_id": self.uom_sack.id,
+                "picking_type_id": self.manu_type.id,
+                "move_dest_ids": [Command.link(picking.move_ids.id)],
+            }
+        )
+        self.assertEqual(mo.alimac_sale_uom_id, self.uom_pallet)
+        self.assertAlmostEqual(mo.alimac_sale_uom_qty, 2)
+        self.assertFalse(mo.alimac_packaging_mismatch)
+
+    def test_13_mo_packaging_mismatch(self):
+        """Ordine in Sacco 25kg ma MO in Sacco 20kg (manca la distinta 25 kg): avviso."""
+        kg = self.env.ref("uom.product_uom_kgm")
+        uom_sack_25 = self.env["uom.uom"].create(
+            {"name": "Sacco 25kg", "relative_factor": 25, "relative_uom_id": kg.id}
+        )
+        self.product.uom_ids = [Command.link(uom_sack_25.id)]
+        sale_line = self._sale_line(uom_sack_25, 3)
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.packing_type.id,
+                "location_id": self.loc_sacks.id,
+                "location_dest_id": self.loc_pallet.id,
+                "move_ids": [Command.create({
+                    "product_id": self.product.id,
+                    "product_uom": self.product.uom_id.id,
+                    "product_uom_qty": 75,
+                    "location_id": self.loc_sacks.id,
+                    "location_dest_id": self.loc_pallet.id,
+                    "sale_line_id": sale_line.id,
+                })],
+            }
+        )
+        picking.action_confirm()
+        mo = self.env["mrp.production"].create(
+            {
+                "product_id": self.product.id,
+                "product_qty": 3.75,
+                "product_uom_id": self.uom_sack.id,
+                "picking_type_id": self.manu_type.id,
+                "move_dest_ids": [Command.link(picking.move_ids.id)],
+            }
+        )
+        self.assertEqual(mo.alimac_sale_uom_id, uom_sack_25)
+        self.assertAlmostEqual(mo.alimac_sale_uom_qty, 3)
+        self.assertTrue(mo.alimac_packaging_mismatch)
+
     def test_05_requires_done_production(self):
         mo = self.env["mrp.production"].create(
             {"product_id": self.product.id, "product_qty": 1500, "picking_type_id": self.manu_type.id}

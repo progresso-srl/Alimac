@@ -8,6 +8,9 @@
   -> flag ``alimac_auto_validate`` sui tipi operazione "Prelievo
   confezionato"; la regola viene archiviata (non cancellata).
 
+- Ubicazione virtuale "Consumo Imballi" creata (o riusata) e assegnata ai
+  tipi operazione Imballo che ne sono privi.
+
 I campi Studio non vengono eliminati: vanno rimossi a mano dopo la verifica
 (vedi README).
 """
@@ -56,6 +59,28 @@ def _migrate_auto_validate(env):
             _logger.info("Regola di automazione archiviata: %s", STUDIO_RULE_NAME)
 
 
+def _setup_consumption_location(env):
+    """Crea "Consumo Imballi" (virtuale, tipo Produzione, senza padre) per ogni
+    azienda con un magazzino e la assegna ai tipi operazione Imballo che ne
+    sono privi. Un'ubicazione già esistente con quel nome viene riusata."""
+    for company in env["stock.warehouse"].search([]).company_id:
+        Location = env["stock.location"].with_company(company)
+        location = Location._alimac_get_consumption_location(create=True)
+        picking_types = env["stock.picking.type"].search(
+            [
+                ("company_id", "=", company.id),
+                ("alimac_is_pallet_packing", "=", True),
+                ("alimac_consumption_location_id", "=", False),
+            ]
+        )
+        picking_types.alimac_consumption_location_id = location
+        _logger.info(
+            "Consumo Imballi (%s) assegnata a %s", location.complete_name,
+            picking_types.mapped("display_name"),
+        )
+
+
 def post_init_hook(env):
     _migrate_count_uom(env)
     _migrate_auto_validate(env)
+    _setup_consumption_location(env)

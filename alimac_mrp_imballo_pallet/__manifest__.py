@@ -5,7 +5,7 @@
     "summary": "Pulsante Imballa sull'ordine di produzione: crea i colli pallet, "
     "scarica i materiali di imballo, lascia l'eccedenza nell'ubicazione sacchi "
     "e convalida in automatico i prelievi intermedi",
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.3.0",
     "description": """
 Imballo pallet da produzione (Alimac)
 =====================================
@@ -15,6 +15,9 @@ Imballo pallet da produzione (Alimac)
   nell'ubicazione sacchi.
 * Flag **Convalida automatica** sui tipi operazione (es. Prelievo
   confezionato): sostituisce la regola Studio.
+* Wizard **Configura formato confezionato**: crea ubicazione, tipo operazione
+  e rotta di un formato sacco/big bag o pallet.
+* Installazione: ubicazione virtuale "Consumo Imballi".
 * Giacenze: colonne N (unità di conteggio dell'ubicazione), Tipologia collo,
   N colli.
 
@@ -23,7 +26,7 @@ Documentazione completa nel file README.md del modulo.
     "category": "Manufacturing/Manufacturing",
     "author": "Progresso Srl",
     "license": "LGPL-3",
-    "depends": ["mrp"],
+    "depends": ["mrp", "sale_stock"],
     "data": [
         "security/ir.model.access.csv",
         "views/stock_package_type_views.xml",
@@ -32,6 +35,7 @@ Documentazione completa nel file README.md del modulo.
         "views/stock_location_views.xml",
         "views/stock_quant_views.xml",
         "wizard/alimac_pallet_packing_wizard_views.xml",
+        "wizard/alimac_packaging_format_wizard_views.xml",
         "views/mrp_production_views.xml",
     ],
     "post_init_hook": "post_init_hook",

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="alimac_packaging_format_wizard_form" model="ir.ui.view">
+        <field name="name">alimac.packaging.format.wizard.form</field>
+        <field name="model">alimac.packaging.format.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Configura formato confezionato">
+                <field name="company_id" invisible="1"/>
+                <group>
+                    <group string="Formato">
+                        <field name="format_type" widget="radio"/>
+                        <field name="warehouse_id" options="{'no_create': True}"/>
+                        <field name="uom_id" options="{'no_create': True}"/>
+                        <field name="content_uom_id" invisible="format_type != 'pallet'"/>
+                        <field name="package_type_id" invisible="format_type != 'pallet'"/>
+                    </group>
+                    <group string="Nomi">
+                        <field name="location_name"/>
+                        <field name="picking_type_name"/>
+                        <field name="sequence_code"/>
+                        <field name="route_name"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Ubicazioni">
+                        <field name="parent_location_id" options="{'no_create': True}"/>
+                        <field name="component_location_id" options="{'no_create': True}"/>
+                        <field name="material_location_id" invisible="format_type != 'pallet'"
+                               options="{'no_create': True}"/>
+                        <field name="consumption_location_id" invisible="format_type != 'pallet'"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="Tipi operazione riusati">
+                        <field name="prelievo_type_id" options="{'no_create': True}"/>
+                        <field name="delivery_type_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <separator string="Cosa verrà fatto"/>
+                <field name="preview" nolabel="1"/>
+                <footer>
+                    <button name="action_configure" type="object" string="Configura"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Annulla" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_alimac_packaging_format_wizard" model="ir.actions.act_window">
+        <field name="name">Configura formato confezionato</field>
+        <field name="res_model">alimac.packaging.format.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_alimac_packaging_format_wizard"
+              name="Configura formato confezionato"
+              parent="stock.menu_warehouse_config"
+              action="action_alimac_packaging_format_wizard"
+              groups="stock.group_stock_manager"
+              sequence="90"/>
+</odoo>
