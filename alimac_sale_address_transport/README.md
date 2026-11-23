@@ -39,7 +39,7 @@ Campi della tariffa:
 | Campo | Note |
 |---|---|
 | Indirizzo di consegna | solo contatti di tipo Consegna |
-| Magazzino/Stabilimento | facoltativo, è il magazzino di partenza dell'ordine. Vuoto = vale da qualsiasi magazzino; se esiste, vince la tariffa con il magazzino dell'ordine. Il campo compare solo con più magazzini attivi (Inventario > Impostazioni > Magazzini multipli): con un solo magazzino non si vede e le tariffe valgono sempre |
+| Magazzino/Stabilimento | facoltativo, è il magazzino di partenza dell'ordine. Vuoto = vale da qualsiasi magazzino; se esiste, vince la tariffa con il magazzino dell'ordine. Il campo compare solo quando esiste più di un magazzino attivo (Odoo attiva e disattiva da solo il gruppo Magazzini multipli): con un solo magazzino non si vede. Con più magazzini e una regola unica basta lasciarlo vuoto |
 | Modalità | €/t oppure €/viaggio |
 | Tariffa | importo |
 | Valida dal / al | facoltative. Per cambiare tariffa si chiude la vecchia con "Valida al" e se ne crea una nuova |
@@ -49,15 +49,22 @@ indirizzo e magazzino.
 
 ## Sull'ordine di vendita
 
-Sotto l'indirizzo di consegna compare **Tariffa trasporto**:
+Sotto l'indirizzo di consegna compare **Tariffa trasporto**, ma solo se
+l'indirizzo di consegna è un contatto di tipo **Consegna**. Se l'indirizzo di
+consegna è il cliente stesso (o un contatto di altro tipo) non compare nulla e
+non si crea nessuna riga: lì si usa, se serve, la spedizione nativa di Odoo
+(**Aggiungi spedizione**).
+
 
 - è proposta dalla tariffa dell'indirizzo valida alla data dell'ordine;
 - è modificabile sul singolo ordine. La conferma non la riporta al valore
   dell'indirizzo; il pulsante ↻ la rilegge dall'indirizzo;
 - con €/viaggio compare **N. viaggi** (default 1);
-- se l'indirizzo non ha tariffa compare un avviso. Scrivendo la tariffa
-  sull'ordine, il pulsante **Salva sull'indirizzo** la salva per i prossimi
-  ordini (valida da oggi; l'eventuale tariffa precedente viene chiusa a ieri).
+- se l'indirizzo di consegna non ha una tariffa valida alla data dell'ordine
+  compare un avviso. Scrivendo la tariffa sull'ordine, il pulsante **Salva
+  sull'indirizzo** la salva per i prossimi ordini (valida da oggi;
+  l'eventuale tariffa precedente viene chiusa a ieri). Lo stesso pulsante
+  compare quando si modifica a mano la tariffa proposta.
 
 La **riga trasporto** si crea e si aggiorna da sola quando si salva l'ordine,
 cambiano le righe merce, l'indirizzo, il magazzino o la tariffa, e alla

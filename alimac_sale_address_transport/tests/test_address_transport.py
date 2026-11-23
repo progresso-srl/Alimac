@@ -117,20 +117,48 @@ class TestAddressTransport(TransactionCase):
         order.action_confirm()
         self.assertAlmostEqual(line.price_unit, 30.0)
 
-    def test_address_without_rate_and_save(self):
-        order = self._order(self.addr_new)
+    def test_customer_address_is_ignored(self):
+        """Indirizzo di consegna = cliente (non un contatto di tipo Consegna):
+        niente campo, niente avviso, niente riga, anche con una tariffa scritta."""
+        order = self._order(self.customer)
+        self.assertFalse(order.address_transport_enabled)
+        self.assertFalse(order.address_transport_missing)
+        order.address_transport_price = 18.0
         self.assertFalse(self._transport_line(order))
+        order.action_update_address_transport()
+        self.assertFalse(self._transport_line(order))
+
+    def test_delivery_address_without_rate_and_save(self):
+        order = self._order(self.addr_new)
+        self.assertTrue(order.address_transport_enabled)
         self.assertTrue(order.address_transport_missing)
+        self.assertFalse(self._transport_line(order))
+        order.address_transport_price = 18.0
+        self.assertAlmostEqual(self._transport_line(order).price_subtotal, 180.0)
+        order.action_save_address_transport_rate()
+        self.assertAlmostEqual(self.addr_new.address_transport_rate_ids.price, 18.0)
+        order2 = self._order(self.addr_new, qty=5.0)
+        self.assertAlmostEqual(self._transport_line(order2).price_subtotal, 90.0)
+        # Cambio da indirizzo di consegna a cliente: la riga sparisce
+        order2.partner_shipping_id = self.customer
+        self.assertFalse(self._transport_line(order2))
+
+    def test_expired_rate_warns_and_save(self):
+        yesterday = fields.Date.context_today(self.rate_pisa) - timedelta(days=1)
+        self.rate_pisa.write({"date_from": yesterday - timedelta(days=30), "date_to": yesterday})
+        order = self._order(self.addr_pisa)
+        self.assertTrue(order.address_transport_enabled)
+        self.assertTrue(order.address_transport_missing)
+        self.assertFalse(self._transport_line(order))
         order.address_transport_price = 18.0
         self.assertAlmostEqual(self._transport_line(order).price_subtotal, 180.0)
         self.assertTrue(order.address_transport_can_save)
         order.action_save_address_transport_rate()
-        rate = self.addr_new.address_transport_rate_ids
-        self.assertEqual(len(rate), 1)
-        self.assertAlmostEqual(rate.price, 18.0)
+        new_rate = self.addr_pisa.address_transport_rate_ids - self.rate_pisa
+        self.assertEqual(len(new_rate), 1)
+        self.assertAlmostEqual(new_rate.price, 18.0)
         self.assertFalse(order.address_transport_can_save)
-        # Il prossimo ordine la trova da solo
-        order2 = self._order(self.addr_new, qty=5.0)
+        order2 = self._order(self.addr_pisa, qty=5.0)
         self.assertAlmostEqual(self._transport_line(order2).price_subtotal, 90.0)
 
     def test_zero_price_removes_line(self):

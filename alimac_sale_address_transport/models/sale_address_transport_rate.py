@@ -44,7 +44,7 @@ class SaleAddressTransportRate(models.Model):
         string="Magazzino/Stabilimento",
         help="Magazzino di partenza dell'ordine. Vuoto = vale da qualsiasi "
         "magazzino; una tariffa con il magazzino dell'ordine ha la precedenza "
-        "su quella generica. Visibile solo con più magazzini attivi.",
+        "su quella generica. Visibile solo se esiste più di un magazzino.",
     )
     rate_type = fields.Selection(
         RATE_TYPES,

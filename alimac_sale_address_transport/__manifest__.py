@@ -4,7 +4,7 @@
     "name": "Alimac - Tariffe trasporto per indirizzo di consegna",
     "summary": "Tariffa trasporto (€/t o €/viaggio) sull'indirizzo di consegna: "
     "l'ordine di vendita crea e aggiorna da solo la riga trasporto",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.1.1",
     "description": """
 Tariffe trasporto per indirizzo di consegna (Alimac)
 ====================================================

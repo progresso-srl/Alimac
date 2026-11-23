@@ -67,6 +67,12 @@ class SaleOrder(models.Model):
     address_transport_can_save = fields.Boolean(
         compute="_compute_address_transport_flags",
     )
+    address_transport_enabled = fields.Boolean(
+        string="Indirizzo di consegna vero",
+        compute="_compute_address_transport_flags",
+        help="Vero se l'indirizzo di consegna è un contatto di tipo Consegna: "
+        "solo in quel caso compare la Tariffa trasporto e si crea la riga.",
+    )
     address_transport_frozen = fields.Boolean(
         compute="_compute_address_transport_flags",
         help="Trasporto incorporato nei prezzi (alimac_sale_transport): "
@@ -104,6 +110,7 @@ class SaleOrder(models.Model):
 
     @api.depends(
         "partner_shipping_id",
+        "partner_shipping_id.type",
         "address_transport_price",
         "address_transport_type",
         "address_transport_rate_id",
@@ -112,16 +119,18 @@ class SaleOrder(models.Model):
         for order in self:
             charged = order._address_transport_is_charged()
             rate = order.address_transport_rate_id
+            enabled = order._address_transport_is_enabled()
+            order.address_transport_enabled = enabled
             order.address_transport_charged = charged
             order.address_transport_frozen = order._address_transport_is_frozen()
             order.address_transport_missing = bool(
                 charged
-                and order.partner_shipping_id
+                and enabled
                 and order.company_id.address_transport_product_id
                 and not order.address_transport_price
             )
             order.address_transport_can_save = bool(
-                order.partner_shipping_id
+                enabled
                 and order.partner_shipping_id.type == "delivery"
                 and order.address_transport_price
                 and (
@@ -136,6 +145,14 @@ class SaleOrder(models.Model):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _address_transport_is_enabled(self):
+        """Tariffa trasporto solo su un vero indirizzo di consegna (contatto
+        di tipo Consegna). Con l'indirizzo del cliente stesso, o un contatto di
+        altro tipo, non compare nulla: si usa la spedizione nativa."""
+        self.ensure_one()
+        shipping = self.partner_shipping_id
+        return bool(shipping and shipping.type == "delivery")
 
     def _address_transport_is_charged(self):
         """Porto assegnato (l10n_it_delivery_note) = il trasporto lo paga il
@@ -227,7 +244,7 @@ class SaleOrder(models.Model):
 
             qty, uom = order._get_address_transport_qty_uom(product)
             wanted = (
-                order.partner_shipping_id
+                order._address_transport_is_enabled()
                 and order._address_transport_is_charged()
                 and order.address_transport_price
                 and not float_is_zero(qty, precision_rounding=uom.rounding)

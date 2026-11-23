@@ -9,9 +9,9 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('alert-warning')][@role='alert']" position="after">
                 <div class="alert alert-warning" role="alert" invisible="not address_transport_missing or state == 'cancel'">
-                    Nessuna tariffa trasporto per questo indirizzo di consegna: scrivila nel campo
-                    <strong>Tariffa trasporto</strong> e, se vale anche per i prossimi ordini,
-                    salvala sull'indirizzo.
+                    Nessuna tariffa trasporto valida per questo indirizzo di consegna:
+                    scrivila nel campo <strong>Tariffa trasporto</strong> e, se vale anche per i
+                    prossimi ordini, salvala sull'indirizzo.
                 </div>
             </xpath>
 
@@ -20,11 +20,12 @@
                 <field name="address_transport_missing" invisible="1"/>
                 <field name="address_transport_can_save" invisible="1"/>
                 <field name="address_transport_frozen" invisible="1"/>
+                <field name="address_transport_enabled" invisible="1"/>
                 <field name="address_transport_rate_id" invisible="1"/>
                 <label for="address_transport_price"
-                       invisible="not address_transport_charged or not partner_shipping_id"/>
+                       invisible="not address_transport_charged or not address_transport_enabled"/>
                 <div class="o_row" name="address_transport"
-                     invisible="not address_transport_charged or not partner_shipping_id">
+                     invisible="not address_transport_charged or not address_transport_enabled">
                     <field name="address_transport_price" class="oe_inline"
                            readonly="state == 'cancel' or locked or address_transport_frozen"/>
                     <field name="address_transport_type" class="oe_inline" nolabel="1"
