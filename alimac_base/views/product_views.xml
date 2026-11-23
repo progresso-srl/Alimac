@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <!-- Modello: come Riferimento interno, visibile solo con una variante -->
+    <record id="product_template_only_form_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.template.form.alimac.base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="alimac_gamma_code" invisible="product_variant_count &gt; 1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_list_view_sellable_alimac_base" model="ir.ui.view">
+        <field name="name">product.template.list.sellable.alimac.base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_list_view_sellable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="alimac_gamma_code" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='uom_id']" position="after">
+                <field name="uom_ids" optional="show" widget="many2many_uom_tags"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.template.search.alimac.base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="alimac_gamma_code"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Variante -->
+    <record id="product_variant_easy_edit_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.product.form.easy.alimac.base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="alimac_gamma_code"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_normal_form_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.product.form.alimac.base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="alimac_gamma_code"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_product_tree_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.product.list.alimac.base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="alimac_gamma_code" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='uom_id']" position="after">
+                <field name="weight" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_search_form_view_alimac_base" model="ir.ui.view">
+        <field name="name">product.product.search.alimac.base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="alimac_gamma_code"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

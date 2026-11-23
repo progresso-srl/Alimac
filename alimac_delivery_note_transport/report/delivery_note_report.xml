@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stampa DDT: tonnellate al posto di peso lordo e peso netto in kg -->
+    <template id="parcels_data_transport_tons" inherit_id="l10n_it_delivery_note.parcels_data">
+        <xpath expr="//div[@name='gross_weight']" position="replace">
+            <div class="col border border-start-0" name="transport_tons"
+                 t-if="'transport_tons' in doc._fields">
+                <div class="px-2 pt-2" style="font-size:10px;">Tonnage</div>
+                <div class="px-2 pb-2" style="font-size:12px;">
+                    <span t-field="doc.transport_tons"/> t
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[@name='net_weight']" position="replace"/>
+    </template>
+</odoo>

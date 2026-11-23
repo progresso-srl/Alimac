@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stampa preventivo/ordine: Totale tonnellate sopra i totali -->
+    <template id="report_saleorder_document_transport_tons" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//div[@name='so_total_summary']//t[@t-call='sale.document_tax_totals']" position="before">
+            <tr t-if="doc.alimac_total_tons" name="alimac_total_tons">
+                <td>Total Tonnage</td>
+                <td class="text-end">
+                    <span t-field="doc.alimac_total_tons" class="text-nowrap"/> t
+                </td>
+            </tr>
+        </xpath>
+    </template>
+</odoo>

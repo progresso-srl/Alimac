@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ordine di vendita: Qtà t per riga (con somma) e Totale tonnellate -->
+    <record id="view_order_form_inherit_transport_tons" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.transport.tons</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="alimac_total_tons"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_id']" position="after">
+                <field name="alimac_qty_tons" optional="show" sum="Total Tonnage"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//div[@name='ordered_qty']" position="after">
+                <field name="alimac_qty_tons" invisible="display_type"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_quotation_tree_inherit_transport_tons" model="ir.ui.view">
+        <field name="name">sale.order.list.quotation.inherit.transport.tons</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_untaxed']" position="before">
+                <field name="alimac_total_tons" optional="hide" sum="Total Tonnage"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_order_tree_inherit_transport_tons" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.transport.tons</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_untaxed']" position="before">
+                <field name="alimac_total_tons" optional="hide" sum="Total Tonnage"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

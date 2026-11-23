@@ -10,7 +10,47 @@
             <xpath expr="(//field[@name='carrier_id'])[1]" position="after">
                 <field name="transport_currency_id" invisible="1"/>
                 <field name="transport_cost" widget="monetary"/>
-                <field name="transport_tons" readonly="1"/>
+            </xpath>
+            <!-- Alimac: tonnellate al posto di peso lordo/netto in kg
+                 (nascosti e non rimossi, così restano disponibili ad altre viste) -->
+            <xpath expr="//label[@for='gross_weight']" position="before">
+                <field name="transport_tons" string="Tonnage" readonly="1"/>
+            </xpath>
+            <xpath expr="//label[@for='gross_weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[field[@name='gross_weight']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='net_weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[field[@name='net_weight']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Trasferimento, scheda DDT: stessa sostituzione -->
+    <record id="stock_picking_form_view_inherit_transport" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.transport</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="l10n_it_delivery_note.stock_picking_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='delivery_note']//label[@for='gross_weight']" position="before">
+                <field name="delivery_note_transport_tons" string="Tonnage"/>
+            </xpath>
+            <xpath expr="//page[@name='delivery_note']//label[@for='gross_weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='delivery_note']//div[field[@name='gross_weight']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='delivery_note']//label[@for='net_weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='delivery_note']//div[field[@name='net_weight']]" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

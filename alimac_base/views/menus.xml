@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="action_customerinfo_alimac_base" model="ir.actions.act_window">
+        <field name="name">Listino prodotti-clienti</field>
+        <field name="res_model">product.customerinfo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_sale_order_line_alimac_base"
+              name="Righe ordine di vendita"
+              parent="sale.menu_sale_report"
+              action="action_sale_order_line_alimac_base"
+              sequence="5"/>
+
+    <menuitem id="menu_customerinfo_alimac_base"
+              name="Listino prodotti-clienti"
+              parent="sale.product_menu_catalog"
+              action="action_customerinfo_alimac_base"
+              sequence="5"/>
+</odoo>

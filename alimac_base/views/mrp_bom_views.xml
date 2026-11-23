@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="mrp_bom_tree_view_alimac_base" model="ir.ui.view">
+        <field name="name">mrp.bom.list.alimac.base</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="picking_type_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

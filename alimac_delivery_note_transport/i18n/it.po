@@ -283,12 +283,22 @@ msgstr ""
 "                Di default mostra i DDT attivi in porto franco."
 
 #. module: alimac_delivery_note_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.parcels_data_transport_tons
 #: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_form_view_inherit_transport
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_picking_form_view_inherit_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_picking__alimac_tons
 msgid "Tonnage"
 msgstr "Tonnellate"
 
 #. module: alimac_delivery_note_transport
 #: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.stock_delivery_note_list_view_inherit_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_sale_order__alimac_total_tons
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_saleorder_document_transport_tons
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.view_order_form_inherit_transport_tons
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.view_order_tree_inherit_transport_tons
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.view_quotation_tree_inherit_transport_tons
+#: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.vpicktree_inherit_transport_tons
 msgid "Total Tonnage"
 msgstr "Totale tonnellate"
 
@@ -363,3 +373,28 @@ msgstr "Anno"
 #: model_terms:ir.ui.view,arch_db:alimac_delivery_note_transport.report_transport_monthly_document
 msgid "t"
 msgstr "t"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_stock_picking__delivery_note_transport_tons
+msgid "DN Tonnage"
+msgstr "Tonnellate DDT"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,field_description:alimac_delivery_note_transport.field_sale_order_line__alimac_qty_tons
+msgid "Qty (t)"
+msgstr "Qtà t"
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_sale_order_line__alimac_qty_tons
+msgid "Ordered quantity in tonnes. Goods lines only: transport, services, down payments, sections and notes count as 0."
+msgstr "Quantità ordinata in tonnellate. Solo righe merce: trasporto, servizi, acconti, sezioni e note valgono 0."
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_sale_order__alimac_total_tons
+msgid "Sum of the tonnes of the goods lines."
+msgstr "Somma delle tonnellate delle righe merce."
+
+#. module: alimac_delivery_note_transport
+#: model:ir.model.fields,help:alimac_delivery_note_transport.field_stock_picking__alimac_tons
+msgid "Tonnes of the transfer: actual quantity when done or already picked, otherwise the demand."
+msgstr "Tonnellate del trasferimento: quantità effettiva se evaso o già confermato, altrimenti la domanda."

@@ -43,30 +43,17 @@ class StockDeliveryNote(models.Model):
         for note in self:
             note.destination_partner_id = note.partner_shipping_id or note.partner_id
 
-    @api.model
-    def _alimac_tons(self, product, qty):
-        """Tonnellate di `qty` (nell'UdM del prodotto) di `product`.
-        Se l'UdM del prodotto è un peso si converte; altrimenti si usa il peso
-        del prodotto (kg, o lb se configurato)."""
-        ton = self.env.ref('uom.product_uom_ton')
-        udm = product.uom_id
-        if udm._has_common_reference(ton):
-            return udm._compute_quantity(qty, ton, round=False)
-        if not product.weight:
-            return 0.0
-        udm_peso = self.env['product.template']._get_weight_uom_id_from_ir_config_parameter()
-        return udm_peso._compute_quantity(product.weight * qty, ton, round=False)
-
     @api.depends(
         'picking_ids',
-        'picking_ids.move_ids.product_qty',
         'picking_ids.move_ids.state',
+        'picking_ids.move_ids.quantity',
+        'picking_ids.move_ids.product_uom',
     )
     def _compute_transport_tons(self):
+        """Tonnellate effettivamente spedite: quantità dei movimenti evasi
+        (``quantity``), non la domanda. Su Odoo 19 la domanda resta quella
+        iniziale se si spedisce di più o si convalida senza backorder.
+        Regola di conversione unica: product._alimac_get_tons (questo modulo)."""
         for note in self:
-            moves = note.picking_ids.move_ids.filtered(
-                lambda m: m.state == 'done' and m.product_qty > 0
-            )
-            note.transport_tons = sum(
-                self._alimac_tons(m.product_id, m.product_qty) for m in moves
-            )
+            moves = note.picking_ids.move_ids.filtered(lambda m: m.state == 'done')
+            note.transport_tons = sum(m._alimac_get_tons(done_qty=True) for m in moves)

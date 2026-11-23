@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="sale_report_view_tree_alimac_base" model="ir.ui.view">
+        <field name="name">sale.report.list.alimac.base</field>
+        <field name="model">sale.report</field>
+        <field name="inherit_id" ref="sale.sale_report_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_uom_qty']" position="after">
+                <field name="product_uom_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -13,6 +13,36 @@ Gestra era un piccolo gestionale interno usato per:
 
 Questo modulo integra la stessa funzionalità direttamente in Odoo, collegandosi ai DDT esistenti.
 
+## Tonnellate (dalla 19.0.2.1.0)
+
+Il modulo contiene tutte le tonnellate di Alimac, con **una sola regola di
+conversione**: `product.product._alimac_get_tons(qty, uom)`
+
+1. UdM di peso (t, kg, Sacco 25kg o Pallet definiti a partire dal kg): conversione diretta;
+2. altrimenti peso prodotto × quantità nell'UdM del prodotto;
+3. 0 se non è un peso e il prodotto non ha peso.
+
+`stock.move._alimac_get_tons()` applica la regola al movimento: quantità
+effettiva se evaso o confermato (picked), altrimenti la domanda.
+
+| Dove | Campo | Note |
+|---|---|---|
+| Righe ordine di vendita | `alimac_qty_tons` (Qtà t) | Con somma in fondo all'elenco. Solo righe merce: trasporto, servizi, acconti, sezioni e note = 0 |
+| Ordine di vendita | `alimac_total_tons` (Totale tonnellate) | Sotto Termini di pagamento; colonna facoltativa negli elenchi; **in stampa** sopra i totali |
+| Trasferimento | `alimac_tons` (Tonnellate) | Altre informazioni > Spedizione; colonna facoltativa nell'elenco |
+| DDT | `transport_tons` | Quantità **spedita**; al posto di peso lordo/netto in kg (maschera, scheda DDT del trasferimento, stampa) |
+
+Sostituisce i campi Studio Qtà TON, Totale tonnellate e i due Peso(ton) del
+trasferimento: all'installazione/aggiornamento le relative viste Studio vengono
+disattivate (`hooks.py`). I campi Studio vanno eliminati a mano dopo la
+verifica.
+
+I moduli `alimac_sale_transport` e `alimac_sale_address_transport` restano
+indipendenti e hanno una loro copia della stessa regola.
+
+La stampa dell'ordine mostra già, sotto ogni quantità in sacchi/pallet,
+l'equivalente in tonnellate (standard Odoo 19: UdM del prodotto).
+
 ## Funzionalità Principali
 
 ### 1. Campi su DDT (stock.delivery.note)
@@ -26,8 +56,14 @@ Questo modulo integra la stessa funzionalità direttamente in Odoo, collegandosi
 #### transport_tons (Float, computed, stored)
 - Tonnellaggio totale trasportato
 - Calcolato automaticamente dai movimenti di stock (stock.move)
-- Usa `product_qty` che è già in UdM base (tonnellate)
+- Usa la quantità **spedita** (`quantity`) dei movimenti evasi, non la domanda
+  (`product_qty`): su Odoo 19 la domanda non si aggiorna se si spedisce di più o
+  si convalida senza backorder. Dalla 19.0.2.1.0; l'aggiornamento ricalcola i DDT esistenti
+- Conversione con la regola unica di `alimac_base` (`product._alimac_get_tons`)
 - Solo movimenti nello stato 'done'
+- **Sostituisce peso lordo e peso netto (kg)** nella maschera DDT, nella scheda
+  DDT del trasferimento (campo `delivery_note_transport_tons`) e nella stampa del
+  DDT. I campi pesi restano nel modello, solo nascosti
 - Precisione: 3 decimali
 
 #### destination_partner_id (Many2one, computed, stored)

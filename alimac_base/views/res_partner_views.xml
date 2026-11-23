@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="view_partner_form_alimac_base" model="ir.ui.view">
+        <field name="name">res.partner.form.alimac.base</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" icon="fa-list-alt" type="object"
+                        name="action_alimac_open_customerinfo"
+                        groups="sales_team.group_sale_salesman">
+                    <field name="alimac_customerinfo_count" widget="statinfo" string="Listino prodotti"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

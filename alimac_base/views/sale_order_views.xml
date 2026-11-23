@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <!-- Vendite > Report > Righe ordine di vendita (era un menu Studio) -->
+    <record id="view_sale_order_line_pivot_alimac_base" model="ir.ui.view">
+        <field name="name">sale.order.line.pivot.alimac.base</field>
+        <field name="model">sale.order.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Righe ordine di vendita" sample="1">
+                <field name="product_id" type="row"/>
+                <field name="product_uom_id" type="row"/>
+                <field name="product_uom_qty" type="measure"/>
+                <field name="price_subtotal" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_sale_order_line_alimac_base" model="ir.actions.act_window">
+        <field name="name">Righe ordine di vendita</field>
+        <field name="res_model">sale.order.line</field>
+        <field name="view_mode">pivot,list,form</field>
+        <field name="domain">[("display_type", "=", False)]</field>
+        <field name="view_id" ref="view_sale_order_line_pivot_alimac_base"/>
+    </record>
+</odoo>

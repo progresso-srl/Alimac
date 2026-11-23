@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Altre informazioni > Spedizione: tonnellate sotto il peso -->
+    <record id="view_picking_withcarrier_out_form_inherit_transport_tons" model="ir.ui.view">
+        <field name="name">stock.picking.form.carrier.inherit.transport.tons</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_delivery.view_picking_withcarrier_out_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='carrier_data']/div[field[@name='shipping_weight']]" position="after">
+                <field name="alimac_tons"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="vpicktree_inherit_transport_tons" model="ir.ui.view">
+        <field name="name">stock.picking.list.inherit.transport.tons</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='scheduled_date']" position="before">
+                <field name="alimac_tons" optional="hide" sum="Total Tonnage"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
