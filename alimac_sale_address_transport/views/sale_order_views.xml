@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="view_order_form_address_transport" model="ir.ui.view">
+        <field name="name">sale.order.form.address.transport</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('alert-warning')][@role='alert']" position="after">
+                <div class="alert alert-warning" role="alert" invisible="not address_transport_missing or state == 'cancel'">
+                    Nessuna tariffa trasporto per questo indirizzo di consegna: scrivila nel campo
+                    <strong>Tariffa trasporto</strong> e, se vale anche per i prossimi ordini,
+                    salvala sull'indirizzo.
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                <field name="address_transport_charged" invisible="1"/>
+                <field name="address_transport_missing" invisible="1"/>
+                <field name="address_transport_can_save" invisible="1"/>
+                <field name="address_transport_frozen" invisible="1"/>
+                <field name="address_transport_rate_id" invisible="1"/>
+                <label for="address_transport_price"
+                       invisible="not address_transport_charged or not partner_shipping_id"/>
+                <div class="o_row" name="address_transport"
+                     invisible="not address_transport_charged or not partner_shipping_id">
+                    <field name="address_transport_price" class="oe_inline"
+                           readonly="state == 'cancel' or locked or address_transport_frozen"/>
+                    <field name="address_transport_type" class="oe_inline" nolabel="1"
+                           readonly="state == 'cancel' or locked or address_transport_frozen"/>
+                    <span invisible="address_transport_type != 'trip'">×</span>
+                    <field name="address_transport_trips" class="oe_inline" nolabel="1"
+                           invisible="address_transport_type != 'trip'"
+                           readonly="state == 'cancel' or locked or address_transport_frozen"/>
+                    <span invisible="address_transport_type != 'trip'">viaggi</span>
+                    <button name="action_update_address_transport" type="object"
+                            icon="fa-refresh" class="btn-link"
+                            title="Rileggi la tariffa dall'indirizzo di consegna"
+                            invisible="state == 'cancel' or locked or address_transport_frozen"/>
+                    <button name="action_save_address_transport_rate" type="object"
+                            string="Salva sull'indirizzo" class="btn-link"
+                            title="Salva questa tariffa sull'indirizzo di consegna per i prossimi ordini"
+                            invisible="not address_transport_can_save or state == 'cancel'"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="before">
+                <field name="is_address_transport" column_invisible="True"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

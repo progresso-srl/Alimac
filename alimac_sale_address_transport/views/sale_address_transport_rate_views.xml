@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <!-- Lista modificabile: è la vista principale del menu Tariffe trasporto -->
+    <record id="sale_address_transport_rate_view_list" model="ir.ui.view">
+        <field name="name">sale.address.transport.rate.list</field>
+        <field name="model">sale.address.transport.rate</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" multi_edit="1">
+                <field name="commercial_partner_id" readonly="1"/>
+                <field name="partner_id"
+                       context="{'show_address': 1}"
+                       options="{'no_quick_create': True}"/>
+                <field name="city" optional="show"/>
+                <field name="zip" optional="hide"/>
+                <field name="warehouse_id" optional="show" options="{'no_create': True}"/>
+                <field name="rate_type"/>
+                <field name="price"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="date_from" optional="show"/>
+                <field name="date_to" optional="show"/>
+                <field name="note" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sale_address_transport_rate_view_form" model="ir.ui.view">
+        <field name="name">sale.address.transport.rate.form</field>
+        <field name="model">sale.address.transport.rate</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archiviata" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="partner_id" options="{'no_quick_create': True}"/>
+                            <field name="commercial_partner_id"/>
+                            <field name="warehouse_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="rate_type"/>
+                            <field name="price"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Note..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_address_transport_rate_view_search" model="ir.ui.view">
+        <field name="name">sale.address.transport.rate.search</field>
+        <field name="model">sale.address.transport.rate</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="commercial_partner_id"/>
+                <field name="partner_id"/>
+                <field name="city"/>
+                <field name="warehouse_id"/>
+                <filter name="valid_today" string="Valide oggi"
+                        domain="['&amp;',
+                                 '|', ('date_from', '=', False), ('date_from', '&lt;=', context_today().strftime('%Y-%m-%d')),
+                                 '|', ('date_to', '=', False), ('date_to', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="per_ton" string="€/t" domain="[('rate_type', '=', 'ton')]"/>
+                <filter name="per_trip" string="€/viaggio" domain="[('rate_type', '=', 'trip')]"/>
+                <separator/>
+                <filter name="inactive" string="Archiviate" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_customer" string="Cliente" context="{'group_by': 'commercial_partner_id'}"/>
+                    <filter name="group_address" string="Indirizzo" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_warehouse" string="Stabilimento" context="{'group_by': 'warehouse_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sale_address_transport_rate_action" model="ir.actions.act_window">
+        <field name="name">Tariffe trasporto</field>
+        <field name="res_model">sale.address.transport.rate</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_valid_today': 1, 'search_default_group_customer': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nessuna tariffa trasporto</p>
+            <p>Inserisci la tariffa (€/t o €/viaggio) di ogni indirizzo di consegna:
+                l'ordine di vendita la usa per creare la riga trasporto.</p>
+        </field>
+    </record>
+</odoo>

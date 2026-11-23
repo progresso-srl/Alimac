@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="view_partner_form_address_transport" model="ir.ui.view">
+        <field name="name">res.partner.form.address.transport</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Form completa del contatto: scheda visibile solo per gli indirizzi di consegna -->
+            <xpath expr="//page[@name='sales_purchases']" position="after">
+                <page name="address_transport_rates" string="Tariffe trasporto"
+                      invisible="type != 'delivery'">
+                    <field name="address_transport_rate_ids" context="{'default_partner_id': id}">
+                        <list editable="bottom">
+                            <field name="warehouse_id" optional="show" options="{'no_create': True}"/>
+                            <field name="rate_type"/>
+                            <field name="price"/>
+                            <field name="currency_id" column_invisible="True"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="note" optional="hide"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            <!-- Popup dell'indirizzo aperto dalla scheda "Contatti e indirizzi" dell'azienda:
+                 è una form inline di child_ids, non la form completa -->
+            <xpath expr="//field[@name='child_ids']/form//group[@name='other_info']" position="after">
+                <separator string="Tariffe trasporto" invisible="type != 'delivery'"/>
+                <field name="address_transport_rate_ids" invisible="type != 'delivery'" nolabel="1">
+                    <list editable="bottom">
+                        <field name="warehouse_id" optional="show" options="{'no_create': True}"/>
+                        <field name="rate_type"/>
+                        <field name="price"/>
+                        <field name="currency_id" column_invisible="True"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menu Indirizzi di consegna: solo contatti di tipo Consegna con la tariffa attuale -->
+    <record id="view_partner_list_delivery_transport" model="ir.ui.view">
+        <field name="name">res.partner.list.delivery.transport</field>
+        <field name="model">res.partner</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="parent_id" string="Cliente"/>
+                <field name="name" string="Indirizzo"/>
+                <field name="street"/>
+                <field name="city"/>
+                <field name="zip" optional="hide"/>
+                <field name="state_id" optional="show"/>
+                <field name="address_transport_rate_summary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_partner_search_delivery_transport" model="ir.ui.view">
+        <field name="name">res.partner.search.delivery.transport</field>
+        <field name="model">res.partner</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="parent_id" string="Cliente"/>
+                <field name="name" string="Indirizzo"/>
+                <field name="city"/>
+                <filter name="without_rate" string="Senza tariffa"
+                        domain="[('address_transport_rate_ids', '=', False)]"/>
+                <filter name="with_rate" string="Con tariffa"
+                        domain="[('address_transport_rate_ids', '!=', False)]"/>
+                <group>
+                    <filter name="group_parent" string="Cliente" context="{'group_by': 'parent_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_partner_delivery_transport" model="ir.actions.act_window">
+        <field name="name">Indirizzi di consegna</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('type', '=', 'delivery')]</field>
+        <field name="context">{'default_type': 'delivery'}</field>
+        <field name="search_view_id" ref="view_partner_search_delivery_transport"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_partner_list_delivery_transport')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_partner_form')})]"/>
+    </record>
+</odoo>

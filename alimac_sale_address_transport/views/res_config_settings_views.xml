@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Progresso Srl
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0) -->
+<odoo>
+    <record id="res_config_settings_view_form_address_transport" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.address.transport</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='sale_shipping_setting_container']" position="inside">
+                <setting id="address_transport_product" company_dependent="1"
+                         string="Trasporto da indirizzo di consegna"
+                         help="Prodotto della riga trasporto creata dalle tariffe degli indirizzi di consegna">
+                    <field name="address_transport_product_id" options="{'no_create': True}"/>
+                    <div class="mt8">
+                        <button name="%(alimac_sale_address_transport.sale_address_transport_rate_action)d"
+                                type="action" string="Tariffe trasporto" class="btn-link" icon="oi-arrow-right"/>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
