@@ -41,9 +41,10 @@ class SaleAddressTransportRate(models.Model):
     zip = fields.Char(related="partner_id.zip", string="CAP")
     warehouse_id = fields.Many2one(
         "stock.warehouse",
-        string="Stabilimento",
-        help="Vuoto = vale da qualsiasi stabilimento. Una tariffa con lo "
-        "stabilimento dell'ordine ha la precedenza su quella generica.",
+        string="Magazzino/Stabilimento",
+        help="Magazzino di partenza dell'ordine. Vuoto = vale da qualsiasi "
+        "magazzino; una tariffa con il magazzino dell'ordine ha la precedenza "
+        "su quella generica. Visibile solo con più magazzini attivi.",
     )
     rate_type = fields.Selection(
         RATE_TYPES,
@@ -90,7 +91,7 @@ class SaleAddressTransportRate(models.Model):
                         "periodo%(warehouse)s. Chiudi la tariffa precedente con "
                         "\"Valida al\" prima di inserirne una nuova.",
                         address=rate.partner_id.display_name,
-                        warehouse=(_(" per lo stabilimento %s", rate.warehouse_id.name)
+                        warehouse=(_(" per il magazzino/stabilimento %s", rate.warehouse_id.name)
                                    if rate.warehouse_id else ""),
                     ))
 

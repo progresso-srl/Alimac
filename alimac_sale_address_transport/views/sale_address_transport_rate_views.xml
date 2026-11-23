@@ -14,7 +14,7 @@
                        options="{'no_quick_create': True}"/>
                 <field name="city" optional="show"/>
                 <field name="zip" optional="hide"/>
-                <field name="warehouse_id" optional="show" options="{'no_create': True}"/>
+                <field name="warehouse_id" optional="show" options="{'no_create': True}" groups="stock.group_stock_multi_warehouses"/>
                 <field name="rate_type"/>
                 <field name="price"/>
                 <field name="currency_id" column_invisible="True"/>
@@ -38,7 +38,7 @@
                         <group>
                             <field name="partner_id" options="{'no_quick_create': True}"/>
                             <field name="commercial_partner_id"/>
-                            <field name="warehouse_id" options="{'no_create': True}"/>
+                            <field name="warehouse_id" options="{'no_create': True}" groups="stock.group_stock_multi_warehouses"/>
                         </group>
                         <group>
                             <field name="rate_type"/>
@@ -64,7 +64,7 @@
                 <field name="commercial_partner_id"/>
                 <field name="partner_id"/>
                 <field name="city"/>
-                <field name="warehouse_id"/>
+                <field name="warehouse_id" groups="stock.group_stock_multi_warehouses"/>
                 <filter name="valid_today" string="Valide oggi"
                         domain="['&amp;',
                                  '|', ('date_from', '=', False), ('date_from', '&lt;=', context_today().strftime('%Y-%m-%d')),
@@ -77,7 +77,7 @@
                 <group>
                     <filter name="group_customer" string="Cliente" context="{'group_by': 'commercial_partner_id'}"/>
                     <filter name="group_address" string="Indirizzo" context="{'group_by': 'partner_id'}"/>
-                    <filter name="group_warehouse" string="Stabilimento" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_warehouse" string="Magazzino/Stabilimento" context="{'group_by': 'warehouse_id'}" groups="stock.group_stock_multi_warehouses"/>
                 </group>
             </search>
         </field>

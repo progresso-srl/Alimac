@@ -39,13 +39,13 @@ Campi della tariffa:
 | Campo | Note |
 |---|---|
 | Indirizzo di consegna | solo contatti di tipo Consegna |
-| Stabilimento | facoltativo. Vuoto = vale da qualsiasi stabilimento. Se esiste, vince la tariffa con lo stabilimento dell'ordine |
+| Magazzino/Stabilimento | facoltativo, è il magazzino di partenza dell'ordine. Vuoto = vale da qualsiasi magazzino; se esiste, vince la tariffa con il magazzino dell'ordine. Il campo compare solo con più magazzini attivi (Inventario > Impostazioni > Magazzini multipli): con un solo magazzino non si vede e le tariffe valgono sempre |
 | Modalità | €/t oppure €/viaggio |
 | Tariffa | importo |
 | Valida dal / al | facoltative. Per cambiare tariffa si chiude la vecchia con "Valida al" e se ne crea una nuova |
 
 Non sono ammesse due tariffe valide nello stesso periodo per lo stesso
-indirizzo e stabilimento.
+indirizzo e magazzino.
 
 ## Sull'ordine di vendita
 
@@ -60,7 +60,7 @@ Sotto l'indirizzo di consegna compare **Tariffa trasporto**:
   ordini (valida da oggi; l'eventuale tariffa precedente viene chiusa a ieri).
 
 La **riga trasporto** si crea e si aggiorna da sola quando si salva l'ordine,
-cambiano le righe merce, l'indirizzo, lo stabilimento o la tariffa, e alla
+cambiano le righe merce, l'indirizzo, il magazzino o la tariffa, e alla
 conferma:
 
 - €/t: quantità = tonnellate delle righe merce (sacchi, big bag e pallet

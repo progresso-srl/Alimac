@@ -33,7 +33,7 @@ class SaleOrder(models.Model):
         store=True,
         copy=False,
         help="Tariffa letta dall'indirizzo di consegna (valida alla data "
-        "dell'ordine, preferendo quella dello stabilimento dell'ordine).",
+        "dell'ordine, preferendo quella del magazzino dell'ordine).",
     )
     address_transport_type = fields.Selection(
         RATE_TYPES,
@@ -352,7 +352,7 @@ class SaleOrder(models.Model):
 
     def action_save_address_transport_rate(self):
         """Salva la tariffa scritta sull'ordine come tariffa dell'indirizzo di
-        consegna (senza stabilimento, valida da oggi)."""
+        consegna (senza magazzino, valida da oggi)."""
         self.ensure_one()
         address = self.partner_shipping_id
         if not address or address.type != "delivery":

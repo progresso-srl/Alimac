@@ -4,13 +4,13 @@
     "name": "Alimac - Tariffe trasporto per indirizzo di consegna",
     "summary": "Tariffa trasporto (€/t o €/viaggio) sull'indirizzo di consegna: "
     "l'ordine di vendita crea e aggiorna da solo la riga trasporto",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "description": """
 Tariffe trasporto per indirizzo di consegna (Alimac)
 ====================================================
 
 * Tabella **Tariffe trasporto** sugli indirizzi di consegna (solo contatti di
-  tipo Consegna): €/t o €/viaggio, stabilimento facoltativo, validità.
+  tipo Consegna): €/t o €/viaggio, magazzino/stabilimento facoltativo (visibile con più magazzini), validità.
 * Menu **Vendite > Ordini > Tariffe trasporto** e **Indirizzi di consegna**.
 * Sull'ordine di vendita la tariffa si legge dall'indirizzo di consegna
   (modificabile) e la **riga trasporto** si crea e si aggiorna da sola:

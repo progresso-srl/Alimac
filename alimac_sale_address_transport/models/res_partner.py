@@ -22,7 +22,7 @@ class ResPartner(models.Model):
             if partner.type != "delivery" or not partner.address_transport_rate_ids:
                 partner.address_transport_rate_summary = False
                 continue
-            # Tariffe valide oggi, una per stabilimento
+            # Tariffe valide oggi, una per magazzino
             rates = Rate.search([
                 ("partner_id", "=", partner.id),
                 "|", ("date_from", "=", False),
