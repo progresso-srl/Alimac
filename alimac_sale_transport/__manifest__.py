@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Alimac Sale Transport',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Sales',
     'summary': 'Incorporate transport costs into product prices for franco destino sales',
     'description': """

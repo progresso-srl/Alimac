@@ -124,6 +124,8 @@ msgstr "Prodotto trasporto"
 #. module: alimac_sale_transport
 #: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__material_amount
 #: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__material_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_report__material_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_invoice_report__material_amount
 #: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
 #: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
 msgid "Material Amount"
@@ -189,6 +191,8 @@ msgstr "Trasporto"
 #. module: alimac_sale_transport
 #: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_order_line__transport_amount
 #: model:ir.model.fields,field_description:alimac_sale_transport.field_account_move_line__transport_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_sale_report__transport_amount
+#: model:ir.model.fields,field_description:alimac_sale_transport.field_account_invoice_report__transport_amount
 #: model_terms:ir.ui.view,arch_db:alimac_sale_transport.sale_order_form_view_inherit_transport
 #: model_terms:ir.ui.view,arch_db:alimac_sale_transport.account_move_form_view_inherit_transport
 msgid "Transport Amount"
